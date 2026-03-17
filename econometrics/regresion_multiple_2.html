@@ -52,7 +52,7 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 .sbtn { width:100%; padding:.85rem; background:var(--green); color:#fff; border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; transition:background .18s; }
 .sbtn:hover { background:var(--green-dark); }
 .serr { min-height:1.2rem; font-size:.82rem; color:var(--bad); margin-top:.4rem; }
-.wfoot { margin-top:1.2rem; display:flex; justify-content:center; align-items:center; }
+.wfoot { margin-top:1rem; font-size:.75rem; color:var(--text3); }
 
 /* ── LESSON ── */
 #lessonScreen { display:none; }
@@ -82,7 +82,6 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 .rcard { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:.9rem; border-top:3px solid var(--green); }
 .rname { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin-bottom:.35rem; }
 .rform { font-family:'IBM Plex Mono',monospace; font-size:.85rem; color:var(--green-dark); font-weight:500; margin-bottom:.3rem; }
-.fblock { display:block; font-family:'IBM Plex Mono',monospace; font-size:.95rem; color:var(--green-dark); font-weight:600; background:var(--surface2); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:.7rem 1rem; margin:.6rem 0; line-height:1.7; }
 .rnote { font-size:.76rem; color:var(--text3); }
 
 /* ── GRAPH CARD ── */
@@ -155,10 +154,10 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
 .mcopt { display:flex; align-items:center; gap:.65rem; padding:.65rem .85rem; border:1.5px solid var(--border); border-radius:8px; cursor:pointer; font-size:.86rem; transition:all .13s; user-select:none; }
 .mcopt:hover:not(.dis) { border-color:var(--green); background:var(--green-bg); }
 .mcopt.dis   { cursor:default; pointer-events:none; }
-.mcopt.pending { border-color:var(--gold); background:color-mix(in srgb, var(--gold) 10%, transparent); }
 .mcopt.sc    { border-color:var(--ok);  background:var(--ok-bg);  color:var(--ok); }
 .mcopt.sw    { border-color:var(--bad); background:var(--bad-bg); color:var(--bad); }
 .mcopt.rc    { border-color:var(--ok);  background:var(--ok-bg); }
+.mcopt.pending { border-color:var(--gold,#b8860b); background:#fffbe6; color:#7a5800; font-weight:600; }
 .mcfb { display:none; padding:.65rem .85rem; border-radius:8px; font-size:.83rem; margin-top:.25rem; }
 .mcfb.show  { display:block; }
 .mcfb.fbok  { background:var(--ok-bg);  color:var(--ok); }
@@ -184,24 +183,17 @@ body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: v
     <div class="wtitle">Regresión Múltiple 2: R² y Valores p</div>
     <div class="wcourse">Econometría</div>
     <label class="flabel" for="sName">Full name</label>
-    <input class="finput" id="sName" type="text" placeholder="Your full name" autocomplete="name">
+    <input class="finput" id="sName" type="text" placeholder="Your full name" autocomplete="name" oninput="checkForSavedSession()">
     <label class="flabel" for="sGroup">Group</label>
-    <input class="finput" id="sGroup" type="text" placeholder="e.g. 3A" autocomplete="off">
+    <input class="finput" id="sGroup" type="text" placeholder="e.g. 3A" autocomplete="off" oninput="checkForSavedSession()">
     <button class="sbtn" onclick="startLesson()">Comenzar →</button>
     <div class="serr" id="startErr"></div>
-    <div class="wfoot">
-      <svg width="210" height="51" viewBox="0 0 140 34" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          .brand-text{ font-family:'Crimson Pro',serif; font-weight:700; letter-spacing:.08em; fill:#4a7c3f; font-size:16px; }
-          .brand-line{ stroke:#c9a84c; stroke-width:2; }
-          .brand-accent{ fill:#c9a84c; }
-        </style>
-        <polyline points="4,24 10,18 16,20 22,10" fill="none" stroke="#4a7c3f" stroke-width="2"/>
-        <circle cx="22" cy="10" r="2.5" class="brand-accent"/>
-        <line x1="32" y1="6" x2="32" y2="28" class="brand-line"/>
-        <text x="42" y="22" class="brand-text">ALEXIS</text>
-      </svg>
+    <div id="restoreBar" style="display:none; margin-top:.8rem; background:#e8f5e9; border:1px solid var(--green); border-radius:8px; padding:.6rem .9rem; font-size:.84rem; color:#2d5a27;">
+      📂 Se encontró una sesión guardada para este estudiante.
+      <button onclick="restoreSession()" style="margin-left:.6rem; background:var(--green); color:#fff; border:none; border-radius:5px; padding:.25rem .7rem; cursor:pointer; font-size:.82rem;">Restaurar</button>
+      <button onclick="dismissRestore()" style="margin-left:.4rem; background:none; border:1px solid var(--green); border-radius:5px; padding:.25rem .7rem; cursor:pointer; font-size:.82rem; color:var(--green);">Ignorar</button>
     </div>
+    <div class="wfoot">Alexis · Econometría</div>
   </div>
 </div>
 
@@ -236,6 +228,133 @@ var studentData   = {};
 var problems      = [];
 var answeredCount = 0;
 var correctCount  = 0;
+
+/* ================================================
+   LOCAL STORAGE — session persistence
+   ================================================ */
+function lsKey() {
+  var n = (studentData.name  || '').trim();
+  var g = (studentData.group || '').trim();
+  return 'RM2__' + (n + '__' + g).replace(/\s+/g,'_');
+}
+
+function saveSession() {
+  if (!studentData.name) return;
+  var drawings = [], texts = [], photos = [];
+  problems.forEach(function(p, i) {
+    // canvas — only save if not blank
+    var dc = document.getElementById('dc' + i);
+    if (dc && dc.width) {
+      var blank = document.createElement('canvas');
+      blank.width = dc.width; blank.height = dc.height;
+      drawings.push(dc.toDataURL() === blank.toDataURL() ? null : dc.toDataURL('image/png'));
+    } else {
+      drawings.push(null);
+    }
+    // textarea
+    var ta = document.getElementById('ta' + i);
+    texts.push(ta ? ta.value : '');
+    // photo
+    var pp = document.getElementById('pp' + i);
+    photos.push((pp && pp.src && pp.src.indexOf('data:') === 0) ? pp.src : null);
+  });
+  var state = {
+    name:          studentData.name,
+    group:         studentData.group,
+    answeredCount: answeredCount,
+    correctCount:  correctCount,
+    choices:  problems.map(function(p) { return p.studentChoice; }),
+    drawings: drawings,
+    texts:    texts,
+    photos:   photos
+  };
+  try { localStorage.setItem(lsKey(), JSON.stringify(state)); } catch(e) {}
+}
+
+function loadSession(name, group) {
+  var key = 'RM2__' + (name + '__' + group).replace(/\s+/g,'_');
+  try {
+    var raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function restoreSession() {
+  var name  = document.getElementById('sName').value.trim();
+  var group = document.getElementById('sGroup').value.trim();
+  var saved = loadSession(name, group);
+  if (!saved) return;
+  document.getElementById('restoreBar').style.display = 'none';
+  studentData = { name: name, group: group };
+  answeredCount = 0;
+  correctCount  = 0;
+  buildLesson(seededRng(name + group));
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('lessonScreen').style.display  = 'block';
+  document.getElementById('studentChip').textContent = name + ' · ' + group;
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.section').forEach(function(s) { obs.observe(s); });
+  // Re-apply saved choices (bypass two-tap)
+  saved.choices.forEach(function(choice, idx) {
+    if (choice !== null && choice !== undefined) {
+      confirmMC(idx, choice);
+    }
+  });
+  // Restore drawings — wait for initCanvas timeouts to finish
+  if (saved.drawings) {
+    setTimeout(function() {
+      saved.drawings.forEach(function(dataUrl, i) {
+        if (!dataUrl) return;
+        var dc = document.getElementById('dc' + i);
+        if (!dc || !dc.width) return;
+        var img = new Image();
+        img.onload = function() {
+          var dpr = window.devicePixelRatio || 1;
+          var ctx = dc.getContext('2d');
+          ctx.drawImage(img, 0, 0, dc.width / dpr, dc.height / dpr);
+        };
+        img.src = dataUrl;
+      });
+    }, 300);
+  }
+  // Restore text
+  if (saved.texts) {
+    saved.texts.forEach(function(text, i) {
+      if (!text) return;
+      var ta = document.getElementById('ta' + i);
+      if (ta) ta.value = text;
+    });
+  }
+  // Restore photos
+  if (saved.photos) {
+    setTimeout(function() {
+      saved.photos.forEach(function(dataUrl, i) {
+        if (!dataUrl) return;
+        var pp = document.getElementById('pp' + i);
+        if (!pp) return;
+        pp.src = dataUrl;
+        pp.style.display = 'block';
+        var pz = document.getElementById('pz' + i);
+        if (pz) pz.style.opacity = '0.4';
+      });
+    }, 300);
+  }
+}
+
+function dismissRestore() {
+  document.getElementById('restoreBar').style.display = 'none';
+}
+
+function checkForSavedSession() {
+  var name  = document.getElementById('sName').value.trim();
+  var group = document.getElementById('sGroup').value.trim();
+  if (!name || !group) { document.getElementById('restoreBar').style.display = 'none'; return; }
+  var saved = loadSession(name, group);
+  var bar = document.getElementById('restoreBar');
+  bar.style.display = (saved && saved.choices && saved.choices.some(function(c){ return c !== null; })) ? 'block' : 'none';
+}
 
 /* ================================================
    THEME
@@ -329,7 +448,7 @@ function initCanvas(canvas) {
   }
   function onDown(e)  { e.preventDefault(); drawing = true; var p = getPos(e); lx = p[0]; ly = p[1]; }
   function onMove(e)  { e.preventDefault(); if (!drawing) return; var p = getPos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p[0],p[1]); ctx.stroke(); lx=p[0]; ly=p[1]; }
-  function onUp()     { drawing = false; }
+  function onUp()     { drawing = false; saveSession(); }
   canvas.addEventListener('mousedown',  onDown, { passive:false });
   canvas.addEventListener('mousemove',  onMove, { passive:false });
   canvas.addEventListener('mouseup',    onUp);
@@ -386,6 +505,7 @@ function handlePhoto(idx, input) {
     img.src = e.target.result;
     img.style.display = 'block';
     document.getElementById('pz' + idx).style.opacity = '0.4';
+    saveSession();
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -416,22 +536,26 @@ function showResults() {
 function handleMC(probIdx, chosenIdx) {
   var prob = problems[probIdx];
   if (prob.studentChoice !== null) return;
-
-  // Two-tap confirmation: first tap sets pending, second tap (same option) confirms
   var opts = document.querySelectorAll('#pc' + probIdx + ' .mcopt');
-  if (prob._pending === undefined) prob._pending = null;
-
-  if (prob._pending !== chosenIdx) {
-    // First tap — highlight as pending, clear any previous pending
+  // Two-tap confirmation
+  var pending = problems[probIdx]._pending;
+  if (pending === undefined || pending === null || pending !== chosenIdx) {
+    problems[probIdx]._pending = chosenIdx;
     opts.forEach(function(o, i) {
       o.classList.remove('pending');
       if (i === chosenIdx) o.classList.add('pending');
     });
-    prob._pending = chosenIdx;
     return;
   }
+  // Second tap on same option: confirm
+  confirmMC(probIdx, chosenIdx);
+}
 
-  // Second tap on the same option — confirm the answer
+function confirmMC(probIdx, chosenIdx) {
+  var prob = problems[probIdx];
+  if (prob.studentChoice !== null) return;
+  var opts = document.querySelectorAll('#pc' + probIdx + ' .mcopt');
+  problems[probIdx]._pending = null;
   prob.studentChoice = chosenIdx;
   opts.forEach(function(o) { o.classList.remove('pending'); o.classList.add('dis'); });
   var isOk = (chosenIdx === prob.correctIdx);
@@ -441,12 +565,13 @@ function handleMC(probIdx, chosenIdx) {
     if (i === chosenIdx && !isOk) o.classList.add('sw');
   });
   var fb = document.getElementById('fb' + probIdx);
-  fb.innerHTML = (isOk ? '<strong>✓ Correct.</strong> ' : '<strong>✗ Incorrect.</strong> ') + prob.explanation;
+  fb.innerHTML = (isOk ? '<strong>✓ Correcto.</strong> ' : '<strong>✗ Incorrecto.</strong> ') + prob.explanation;
   fb.className = 'mcfb show ' + (isOk ? 'fbok' : 'fbbad');
   document.getElementById('pc' + probIdx).classList.add(isOk ? 'ok' : 'bad');
   if (isOk) correctCount++;
   answeredCount++;
   document.getElementById('progFill').style.width = (answeredCount / problems.length * 100) + '%';
+  saveSession();
   if (answeredCount === problems.length) setTimeout(showResults, 700);
 }
 
@@ -490,7 +615,7 @@ function buildProblemCards() {
             '</div>' +
           '</div>' +
           '<div class="wpanel" id="wp_' + i + '_type">' +
-            '<textarea class="wtextarea" id="ta' + i + '" placeholder="Show your steps here..."></textarea>' +
+            '<textarea class="wtextarea" id="ta' + i + '" placeholder="Show your steps here..." oninput="saveSession()"></textarea>' +
           '</div>' +
           '<div class="wpanel" id="wp_' + i + '_photo">' +
             '<div class="pzone" id="pz' + i + '">' +
@@ -773,16 +898,16 @@ function buildLesson(rng) {
   var pValBord  = rf(0.046, 0.064, 3);    // border
   var alphaQ    = 0.05;
   // regression dataset for the big activity
-  // Actividad central — valores reales OLS (Python numpy, seed=42, n=48)
-  // Modelo completo: Y ~ X1 + X2 + X3
-  var b0f=8.98, b1f=0.83, b2f=0.41, b3f=-0.24;
-  var p0f=0.035, p1f=0.000, p2f=0.040, p3f=0.452;
-  var r2f=0.5505, r2adjf=0.5199;
-  // Modelo reducido: Y ~ X1 + X2
-  var b0r=7.73, b1r=0.80, b2r=0.41;
-  var p0r=0.046, p1r=0.000, p2r=0.040;
-  var r2r=0.5447, r2adjr=0.5244;
-  var nAct=48;
+  var b0act = rf(2.5, 8.0, 2);
+  var b1act = rf(0.3, 1.5, 2);
+  var b2act = rf(0.1, 0.9, 2);
+  var b3act = rf(-0.6, -0.05, 2);         // variable no significativa (negativa pequeña)
+  var r2Act = rf(0.78, 0.93, 4);
+  var r2AdjAct = rf(r2Act - 0.04, r2Act - 0.005, 4);
+  var pB1 = rf(0.001, 0.020, 3);
+  var pB2 = rf(0.005, 0.038, 3);
+  var pB3 = rf(0.120, 0.380, 3);          // variable no sig
+  var n3  = ri(40, 80);
   // final assessment numbers
   var r2F1 = rf(0.60, 0.92, 4);
   var nF1  = ri(30, 70); var kF1 = ri(2, 5);
@@ -870,8 +995,10 @@ function buildLesson(rng) {
     <div class="rules-grid">
       <div class="rcard">
         <div class="rname">Fórmula</div>
-        <div class="rform">R² = SCR / SCT = 1 − SCE/SCT</div>
-        <div class="rnote">SCR = variación explicada · SCT = variación total · SCE = variación no explicada</div>
+        <div class="rform">R² = SCR / SCT</div>
+        <div class="rnote" style="margin:.35rem 0;">donde <strong>SCR = SCT − SCE</strong>, por lo tanto:</div>
+        <div class="rform">R² = (SCT − SCE) / SCT = 1 − SCE/SCT</div>
+        <div class="rnote">SCT = variación total · SCE = variación no explicada · SCR = variación explicada</div>
       </div>
       <div class="rcard">
         <div class="rname">Rango</div>
@@ -889,10 +1016,10 @@ function buildLesson(rng) {
 
     <div class="callout">
       <strong>R² ajustado:</strong>
-      <p style="margin-top:.3rem">donde <em>n</em> = número de observaciones y <em>k</em> = número de variables independientes. Penaliza por agregar variables innecesarias.</p>
-    </div>
-    <div style="background:var(--surface2); border-left:4px solid var(--gold); border-radius:0 10px 10px 0; padding:1rem 1.2rem; margin:.8rem 0; font-family:'IBM Plex Mono',monospace; font-size:1rem; font-weight:700; color:var(--green-dark); letter-spacing:.01em;">
-      R²<sub style="font-size:.75em;">adj</sub> &nbsp;=&nbsp; 1 &minus; &nbsp;<span style="font-size:1.05em;">[</span>&nbsp;(1 &minus; R²) &nbsp;&sdot;&nbsp; (n &minus; 1) &nbsp;/&nbsp; (n &minus; k &minus; 1)&nbsp;<span style="font-size:1.05em;">]</span>
+      <p style="font-family:'IBM Plex Mono',monospace; margin-top:.4rem;">
+        R²<sub>adj</sub> = 1 − [(1 − R²) · (n − 1) / (n − k − 1)]
+      </p>
+      <p style="margin-top:.5rem">donde <em>n</em> = número de observaciones y <em>k</em> = número de variables independientes. Penaliza por agregar variables innecesarias.</p>
     </div>
 
     <h3 style="margin-top:1.4rem; font-family:'Crimson Pro',serif; font-size:1.2rem;">Ejemplo resuelto</h3>
@@ -904,18 +1031,18 @@ function buildLesson(rng) {
 
     <p><strong>Paso 1 — Calcular R²:</strong></p>
     <div style="background:var(--surface2); border-radius:8px; padding:.8rem 1rem; font-family:'IBM Plex Mono',monospace; font-size:.85rem; margin-bottom:.6rem;">
-      <div>SCR = SCT − SCE = 1 200 − 180 = 1 020</div>
-      <div>R² = SCR / SCT = 1 020 / 1 200 = <strong>0.8500</strong></div>
+      SCR = SCT − SCE = 1 200 − 180 = 1 020<br>
+      R² = SCR / SCT = 1 020 / 1 200 = <strong>0.8500</strong>
     </div>
 
     <p><strong>Paso 2 — Interpretar:</strong> El modelo explica el <strong>85%</strong> de la variabilidad de Y.</p>
 
     <p style="margin-top:.6rem"><strong>Paso 3 — R² ajustado:</strong></p>
     <div style="background:var(--surface2); border-radius:8px; padding:.8rem 1rem; font-family:'IBM Plex Mono',monospace; font-size:.85rem;">
-      <div>R²<sub>adj</sub> = 1 − [(1 − 0.85) × (45 − 1) / (45 − 3 − 1)]</div>
-      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1 − [0.15 × 44 / 41]</div>
-      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1 − [6.60 / 41]</div>
-      <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1 − 0.1610 = <strong>0.8390</strong></div>
+      R²<sub>adj</sub> = 1 − [(1 − 0.85) × (45 − 1) / (45 − 3 − 1)]<br>
+      = 1 − [0.15 × 44 / 41]<br>
+      = 1 − [6.60 / 41]<br>
+      = 1 − 0.1610 = <strong>0.8390</strong>
     </div>
     <p style="margin-top:.6rem">El R² ajustado (0.8390) es levemente menor que el R² (0.8500), lo cual es normal.</p>
   `;
@@ -947,7 +1074,7 @@ function buildLesson(rng) {
   });
 
   /* ── Problema 2 ── */
-  var r2adj_correct = r2adjf.toFixed(4);
+  var r2adj_correct = r2AdjAct.toFixed(4);
   var r2adjWrong1 = (r2B).toFixed(4);
   var r2adjWrong2 = (r2B - rf(0.01, 0.04, 4)).toFixed(4);
   var r2adjWrong3 = (r2B - rf(0.05, 0.10, 4)).toFixed(4);
@@ -1068,7 +1195,7 @@ function buildLesson(rng) {
   var nNoSig = 1; // cuántas no son significativas
 
   var p3opts = ['Solo X₂', 'X₁ y X₃', 'X₂ y X₄', 'Ninguna'];
-  var p3correct = 'Solo X₂';
+  var p3correct = 'X₂ y X₄';
   var s3p = shuffleOpts(p3opts, p3correct);
   addProblem({
     title: 'Identificar variables no significativas',
@@ -1077,7 +1204,7 @@ function buildLesson(rng) {
     options: s3p.opts,
     correctIdx: s3p.correctIdx,
     hint: `Compara cada valor p con 0.05. Los que sean mayores a 0.05 no son significativos.`,
-    explanation: `X₁(${p3cVal} < 0.05 ✓), X₂(${p3bVal} > 0.05 ✗), X₃(${p3aVal} < 0.05 ✓), X₄(${p3dVal} > 0.05 ✗). Espera — solo X₂ cumple el criterio de no significativa aquí. La respuesta correcta es "Solo X₂".`,
+    explanation: `X₁(${p3cVal} < 0.05 ✓), X₂(${p3bVal} > 0.05 ✗), X₃(${p3aVal} < 0.05 ✓), X₄(${p3dVal} > 0.05 ✗). Tanto X₂ como X₄ tienen p > 0.05, por lo que ambas no son estadísticamente significativas.`,
     studentChoice: null
   });
 
@@ -1109,292 +1236,154 @@ function buildLesson(rng) {
   s3.className = 'section';
   s3.innerHTML = `
     <div class="stag">Actividad Central</div>
-    <h2>🔬 Depura el Modelo — Tú decides</h2>
+    <h2>🔬 Corre tu Regresión, Depura el Modelo</h2>
+    <p>En esta actividad trabajarás como un analista de datos. Seguirás los pasos completos: desde interpretar la regresión inicial hasta presentar el modelo final.</p>
 
     <div class="callout">
       <strong>Contexto:</strong>
-      <p>Una empresa quiere predecir las <strong>ventas mensuales (Y, miles de pesos)</strong> de sus ${nAct} tiendas. Se probaron tres variables explicativas:</p>
+      <p>Una empresa quiere predecir las <strong>ventas mensuales (Y)</strong> de sus tiendas en miles de pesos. Las variables explicativas son:</p>
       <ul style="margin-left:1.2rem; margin-top:.4rem;">
         <li><strong>X₁</strong> = Gasto en publicidad (miles de pesos)</li>
         <li><strong>X₂</strong> = Número de empleados</li>
         <li><strong>X₃</strong> = Antigüedad de la tienda (años)</li>
       </ul>
-      <p style="margin-top:.5rem;">Los datos fueron analizados con software estadístico. La tabla de abajo muestra los resultados del <strong>modelo inicial</strong>. Analízala cuidadosamente.</p>
     </div>
 
-    <h3 style="margin-top:1.3rem; font-family:'Crimson Pro',serif; font-size:1.15rem;">Modelo inicial — Y ~ X₁ + X₂ + X₃ &nbsp;(n = ${nAct})</h3>
+    <h3 style="margin-top:1.2rem; font-family:'Crimson Pro',serif; font-size:1.15rem;">Paso 1 — Resultados del modelo inicial (n = ${n3})</h3>
+    <p>El software arroja la siguiente tabla de regresión:</p>
 
-    <div style="overflow-x:auto; margin:.8rem 0 .5rem;">
+    <div style="overflow-x:auto; margin:1rem 0;">
       <table style="width:100%; border-collapse:collapse; font-size:.84rem; background:var(--surface);">
         <thead>
           <tr style="background:var(--green); color:#fff;">
             <th style="padding:.55rem .7rem; text-align:left;">Variable</th>
             <th style="padding:.55rem .7rem; text-align:right;">Coef. (β̂)</th>
             <th style="padding:.55rem .7rem; text-align:right;">Valor p</th>
+            <th style="padding:.55rem .7rem; text-align:center;">Significativa (α=0.05)?</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom:1px solid var(--border);">
             <td style="padding:.5rem .7rem;">Constante (β₀)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b0f.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p0f.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b0act.toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">0.000</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--ok);">✓ Sí</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border); background:var(--surface2);">
             <td style="padding:.5rem .7rem;">X₁ (Publicidad)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b1f.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p1f.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b1act.toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${pB1.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--ok);">✓ Sí</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);">
             <td style="padding:.5rem .7rem;">X₂ (Empleados)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b2f.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p2f.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b2act.toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${pB2.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--ok);">✓ Sí</td>
           </tr>
-          <tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:.5rem .7rem;">X₃ (Antigüedad)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b3f.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p3f.toFixed(3)}</td>
+          <tr style="background:var(--bad-bg);">
+            <td style="padding:.5rem .7rem; color:var(--bad);">X₃ (Antigüedad)</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace; color:var(--bad);">${b3act.toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace; color:var(--bad);">${pB3.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--bad);">✗ No</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin:.8rem 0 1.2rem;">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin:.8rem 0;">
       <div style="background:var(--surface2); border-radius:8px; padding:.75rem; text-align:center;">
-        <div style="font-size:.68rem; text-transform:uppercase; color:var(--text3); margin-bottom:.25rem;">R² modelo inicial</div>
-        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--green);">${r2f.toFixed(4)}</div>
+        <div style="font-size:.68rem; text-transform:uppercase; color:var(--text3); margin-bottom:.25rem;">R² del modelo inicial</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--green);">${r2Act.toFixed(4)}</div>
       </div>
       <div style="background:var(--surface2); border-radius:8px; padding:.75rem; text-align:center;">
         <div style="font-size:.68rem; text-transform:uppercase; color:var(--text3); margin-bottom:.25rem;">R² ajustado</div>
-        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--gold);">${r2adjf.toFixed(4)}</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--gold);">${r2AdjAct.toFixed(4)}</div>
       </div>
     </div>
-  `;
-  lb.appendChild(s3);
 
-  /* ── Problema 5 — ¿Qué variable eliminar? ── */
-  var p5opts = [
-    'X₃ (Antigüedad), p = 0.452 > 0.05',
-    'X₁ (Publicidad), tiene el coeficiente más pequeño',
-    'X₂ (Empleados), p = 0.040 está cerca del límite',
-    'Ninguna, todas las variables deben conservarse'
-  ];
-  var s5p = shuffleOpts(p5opts, 'X₃ (Antigüedad), p = 0.452 > 0.05');
-  addProblem({
-    title: '¿Qué variable eliminar?',
-    questionText: `Con α = 0.05, analiza la tabla del modelo inicial. ¿Cuál variable NO es estadísticamente significativa y debe eliminarse?`,
-    fn: `Criterio: si p > α → no significativa → candidata a eliminar`,
-    options: s5p.opts,
-    correctIdx: s5p.correctIdx,
-    hint: `Compara cada valor p con 0.05. ¿Cuál variable tiene p mayor que 0.05?`,
-    explanation: `X₃ (Antigüedad) tiene p = 0.452, muy por encima de α = 0.05. X₁ (p=0.000) y X₂ (p=0.040) sí son significativas. Se elimina X₃ y se vuelve a correr la regresión.`,
-    studentChoice: null
-  });
+    <div class="callout" style="border-left-color:var(--bad);">
+      <strong style="color:var(--bad);">🔍 Tu turno:</strong>
+      <p>Examina la tabla. X₃ tiene p = ${pB3.toFixed(3)} &gt; 0.05, por lo que NO es significativa. La eliminamos y corremos el modelo de nuevo solo con X₁ y X₂.</p>
+    </div>
 
-  /* ── Reveal modelo final tras problema 5 ── */
-  var s3b = document.createElement('div');
-  s3b.className = 'section';
-  s3b.innerHTML = `
-    <h3 style="font-family:'Crimson Pro',serif; font-size:1.15rem;">Modelo final — Y ~ X₁ + X₂ &nbsp;(sin X₃)</h3>
-    <p>Al correr nuevamente la regresión sin X₃, el software produce:</p>
+    <h3 style="margin-top:1.2rem; font-family:'Crimson Pro',serif; font-size:1.15rem;">Paso 2 — Modelo final (sin X₃)</h3>
+    <p>Al correr nuevamente la regresión sin la variable Antigüedad, los nuevos coeficientes son:</p>
 
-    <div style="overflow-x:auto; margin:.8rem 0 .5rem;">
+    <div style="overflow-x:auto; margin:1rem 0;">
       <table style="width:100%; border-collapse:collapse; font-size:.84rem; background:var(--surface);">
         <thead>
           <tr style="background:var(--green-dark); color:#fff;">
             <th style="padding:.55rem .7rem; text-align:left;">Variable</th>
             <th style="padding:.55rem .7rem; text-align:right;">Coef. (β̂)</th>
             <th style="padding:.55rem .7rem; text-align:right;">Valor p</th>
+            <th style="padding:.55rem .7rem; text-align:center;">¿Significativa?</th>
           </tr>
         </thead>
         <tbody>
           <tr style="border-bottom:1px solid var(--border);">
             <td style="padding:.5rem .7rem;">Constante (β₀)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b0r.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p0r.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${(b0act + rf(0.1, 0.4, 2)).toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">0.000</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--ok);">✓ Sí</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border); background:var(--surface2);">
             <td style="padding:.5rem .7rem;">X₁ (Publicidad)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b1r.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p1r.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${(b1act + rf(0.01, 0.08, 2)).toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${rf(0.001, 0.025, 3).toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--ok);">✓ Sí</td>
           </tr>
           <tr style="border-bottom:1px solid var(--border);">
             <td style="padding:.5rem .7rem;">X₂ (Empleados)</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${b2r.toFixed(2)}</td>
-            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${p2r.toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${(b2act + rf(0.01, 0.06, 2)).toFixed(2)}</td>
+            <td style="padding:.5rem .7rem; text-align:right; font-family:monospace;">${rf(0.002, 0.040, 3).toFixed(3)}</td>
+            <td style="padding:.5rem .7rem; text-align:center; color:var(--ok);">✓ Sí</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin:.8rem 0 .6rem;">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.7rem; margin:.8rem 0;">
       <div style="background:var(--ok-bg); border-radius:8px; padding:.75rem; text-align:center; border:1px solid var(--ok);">
         <div style="font-size:.68rem; text-transform:uppercase; color:var(--ok); margin-bottom:.25rem;">R² modelo final</div>
-        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--ok);">${r2r.toFixed(4)}</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--ok);">${(r2Act - rf(0.001, 0.006, 4)).toFixed(4)}</div>
       </div>
       <div style="background:var(--ok-bg); border-radius:8px; padding:.75rem; text-align:center; border:1px solid var(--ok);">
         <div style="font-size:.68rem; text-transform:uppercase; color:var(--ok); margin-bottom:.25rem;">R² ajustado (final)</div>
-        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--ok);">${r2adjr.toFixed(4)}</div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:1.1rem; font-weight:700; color:var(--ok);">${(r2AdjAct + rf(0.002, 0.010, 4)).toFixed(4)}</div>
       </div>
     </div>
-    <div class="callout">
-      <strong>Observa:</strong>
-      <p>El R² bajó apenas (0.5505 → 0.5447), pero el R² ajustado <em>subió</em> (0.5199 → 0.5244). Esto confirma que X₃ no aportaba información real y el modelo es ahora más parsimonioso.</p>
-    </div>
-  `;
-  lb.appendChild(s3b);
-
-  /* ── Problema 6 — Ecuación del modelo final ── */
-  var eqCorrect = 'Ventas = 7.73 + 0.80·Publicidad + 0.41·Num_Empleados';
-  var eqWrong1  = 'Ventas = 8.98 + 0.83·Publicidad + 0.41·Num_Empleados − 0.24·Antigüedad';
-  var eqWrong2  = 'Ventas = 7.73 + 0.41·Publicidad + 0.80·Num_Empleados';
-  var eqWrong3  = 'Ventas = 8.98 + 0.80·Publicidad + 0.41·Num_Empleados';
-  var s6p = shuffleOpts([eqCorrect, eqWrong1, eqWrong2, eqWrong3], eqCorrect);
-  addProblem({
-    title: 'Ecuación del modelo final',
-    questionText: `Usando los coeficientes del modelo final (sin Antigüedad), ¿cuál es la ecuación de regresión correcta?`,
-    fn: `Ventas = β̂₀ + β̂₁·Publicidad + β̂₂·Num_Empleados`,
-    options: s6p.opts,
-    correctIdx: s6p.correctIdx,
-    hint: `Lee los coeficientes de la tabla del modelo final: constante = 7.73, Publicidad = 0.80, Num_Empleados = 0.41.`,
-    explanation: `Ventas = 7.73 + 0.80·Publicidad + 0.41·Num_Empleados. Por cada mil pesos adicionales en publicidad, las ventas suben 0.80 miles de pesos; por cada empleado adicional, suben 0.41 miles de pesos (manteniendo lo demás constante).`,
-    studentChoice: null
-  });
-
-  /* ══════════════════════════════════════════
-     SECCIÓN 3c — TU TURNO: dataset propio
-  ══════════════════════════════════════════ */
-
-  // Dataset — 25 negocios, generado con Python (numpy seed=7)
-  // Modelo verdadero: Ingreso = 10 + 2.8·Horas + 8.5·Empleados + ruido
-  // Antigüedad es no significativa (p=0.209 en modelo completo)
-  var dsRows = [
-    [168.7,34,10,5],[265.0,55,11,4],[169.0,33,8,2],[216.1,49,6,4],[246.4,53,11,2],
-    [251.1,69,9,5],[213.4,58,5,2],[201.2,44,5,6],[237.6,53,10,10],[145.6,38,5,3],
-    [163.1,55,2,4],[176.5,56,3,12],[128.9,38,2,16],[202.5,69,2,17],[290.9,68,8,13],
-    [177.5,34,9,12],[191.7,37,9,10],[209.1,30,11,10],[189.8,41,5,13],[124.6,36,2,4],
-    [228.7,49,9,15],[195.5,35,9,15],[234.8,54,9,16],[84.3,30,2,4],[258.5,64,7,17]
-  ];
-
-  // CSV download helper
-  function downloadCSV() {
-    var lines = ['Negocio,Ingreso_Mensual,Horas_Operacion,Num_Empleados,Antiguedad'];
-    dsRows.forEach(function(r,i){
-      lines.push((i+1)+','+r[0]+','+r[1]+','+r[2]+','+r[3]);
-    });
-    var blob = new Blob([lines.join('\n')], {type:'text/csv'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'datos_negocios.csv';
-    a.click();
-  }
-  window.downloadCSV = downloadCSV;
-
-  var s3c = document.createElement('div');
-  s3c.className = 'section';
-  s3c.innerHTML = `
-    <div class="stag">Tu Turno</div>
-    <h2>🧪 Corre tú la Regresión</h2>
-    <p>Ahora repite el proceso completo desde cero con un conjunto de datos nuevo. Estos son datos reales de <strong>25 pequeños negocios</strong>. La variable a predecir es su <strong>ingreso mensual</strong> en miles de pesos.</p>
 
     <div class="callout">
-      <strong>Variables:</strong>
-      <ul style="margin-left:1.2rem; margin-top:.4rem; margin-bottom:0;">
-        <li><strong>Ingreso_Mensual</strong> — ingreso mensual del negocio (miles de pesos) · <em>variable dependiente Y</em></li>
-        <li><strong>Horas_Operacion</strong> — horas abiertas por semana</li>
-        <li><strong>Num_Empleados</strong> — número de empleados</li>
-        <li><strong>Antiguedad</strong> — años en operación</li>
-      </ul>
+      <strong>✅ Conclusión del proceso:</strong>
+      <p>El R² bajó muy poco (eliminamos una variable no significativa), pero el R² ajustado <em>subió</em>, lo que confirma que el modelo mejoró al simplificarse. El modelo final es más parsimonioso y confiable.</p>
     </div>
 
-    <div style="margin:1rem 0; display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;">
-      <button onclick="downloadCSV()" style="background:var(--green); color:#fff; border:none; border-radius:8px; padding:.6rem 1.2rem; font-size:.88rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:.45rem;">
-        ⬇ Descargar datos_negocios.csv
-      </button>
-      <span style="font-size:.78rem; color:var(--text3);">Ábrelo en StatsBlue, Excel o el software de tu preferencia</span>
+    <h3 style="margin-top:1.2rem; font-family:'Crimson Pro',serif; font-size:1.15rem;">📝 Escribe la ecuación final</h3>
+    <p>Usa el área de abajo para escribir la ecuación del modelo final en la forma:</p>
+    <div style="text-align:center; font-family:'IBM Plex Mono',monospace; font-size:.9rem; background:var(--surface2); padding:.6rem; border-radius:8px; margin:.5rem 0;">
+      Ŷ = β₀ + β₁X₁ + β₂X₂
     </div>
-
-    <div style="overflow-x:auto; margin:.5rem 0 1rem;">
-      <table style="border-collapse:collapse; font-size:.78rem; background:var(--surface); min-width:380px;">
-        <thead>
-          <tr style="background:var(--green-dark); color:#fff;">
-            <th style="padding:.4rem .65rem; text-align:center;">#</th>
-            <th style="padding:.4rem .65rem; text-align:right;">Ingreso_Mensual</th>
-            <th style="padding:.4rem .65rem; text-align:right;">Horas_Op.</th>
-            <th style="padding:.4rem .65rem; text-align:right;">Empleados</th>
-            <th style="padding:.4rem .65rem; text-align:right;">Antigüedad</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${dsRows.map(function(r,i){
-            return '<tr style="border-bottom:1px solid var(--border);'+(i%2?'background:var(--surface2);':'')+'">' +
-              '<td style="padding:.32rem .65rem; text-align:center; color:var(--text3);">'+(i+1)+'</td>' +
-              '<td style="padding:.32rem .65rem; text-align:right; font-family:monospace;">'+r[0]+'</td>' +
-              '<td style="padding:.32rem .65rem; text-align:right; font-family:monospace;">'+r[1]+'</td>' +
-              '<td style="padding:.32rem .65rem; text-align:right; font-family:monospace;">'+r[2]+'</td>' +
-              '<td style="padding:.32rem .65rem; text-align:right; font-family:monospace;">'+r[3]+'</td>' +
-            '</tr>';
-          }).join('')}
-        </tbody>
-      </table>
-    </div>
-
-    <div class="callout" style="border-left-color:var(--gold);">
-      <strong>Instrucciones:</strong>
-      <ol style="margin-left:1.2rem; margin-top:.4rem; margin-bottom:0; color:var(--text2);">
-        <li>Carga el archivo en tu software y corre la regresión con las <strong>tres variables independientes</strong>.</li>
-        <li>Revisa los valores p con α = 0.05 y decide cuál variable eliminar.</li>
-        <li>Corre la regresión de nuevo sin esa variable.</li>
-        <li>Responde las preguntas de abajo basándote en tus resultados.</li>
-      </ol>
-    </div>
+    <p style="font-size:.83rem; color:var(--text3);">Sustituye los valores del modelo final e interpreta cada coeficiente en el contexto del problema.</p>
   `;
-  lb.appendChild(s3c);
+  lb.appendChild(s3);
 
-  /* ── Problema 7 — ¿Qué variable eliminar del dataset propio? ── */
-  var p7opts = [
-    'Antigüedad (p = 0.209 > 0.05)',
-    'Horas_Operacion (p < 0.001)',
-    'Num_Empleados (p < 0.001)',
-    'Ninguna, las tres son significativas'
+  /* ── Problema 5 (sobre la actividad) ── */
+  var p5opts = [
+    'X₃ porque su valor p > 0.05',
+    'X₁ porque tiene el coeficiente más pequeño',
+    'X₂ porque tiene el coeficiente más grande',
+    'Ninguna variable debe eliminarse'
   ];
-  var s7p = shuffleOpts(p7opts, 'Antigüedad (p = 0.209 > 0.05)');
+  var s5p = shuffleOpts(p5opts, 'X₃ porque su valor p > 0.05');
   addProblem({
-    title: 'Tu turno — ¿Qué variable eliminar?',
-    questionText: 'Corre la regresión completa (Ingreso ~ Horas + Empleados + Antigüedad) con los datos descargados. ¿Qué variable no es estadísticamente significativa con α = 0.05?',
-    fn: 'Criterio: p > 0.05 → no significativa → eliminar',
-    options: s7p.opts,
-    correctIdx: s7p.correctIdx,
-    hint: 'Busca en tu tabla de resultados el valor p de cada variable. ¿Cuál supera 0.05?',
-    explanation: 'Antigüedad tiene p = 0.209 > 0.05 — no es estadísticamente significativa. Horas_Operacion y Num_Empleados ambas tienen p < 0.001 y son altamente significativas.',
-    studentChoice: null
-  });
-
-  /* ── Problema 8 — R²adj del modelo final (dataset propio) ── */
-  var p8opts = ['0.8942', '0.8973', '0.9030', '0.8542'];
-  var s8p = shuffleOpts(p8opts, '0.8942');
-  addProblem({
-    title: 'Tu turno — R² ajustado del modelo final',
-    questionText: 'Después de eliminar Antigüedad, corre el modelo reducido (Ingreso ~ Horas + Empleados). ¿Cuál es el R² ajustado de este modelo final?',
-    fn: 'R²adj = 1 − [(1−R²) · (n−1) / (n−k−1)]',
-    options: s8p.opts,
-    correctIdx: s8p.correctIdx,
-    hint: 'El software calcula esto automáticamente. Busca "R² ajustado" o "Adjusted R²" en los resultados del modelo reducido.',
-    explanation: 'El modelo reducido (sin Antigüedad) tiene R² = 0.9030 y R²adj = 0.8942 con n = 25 y k = 2. Nota que aunque el R² bajó levemente (0.9102 → 0.9030), el R²adj también bajó un poco — pero el modelo es más parsimonioso al eliminar una variable irrelevante.',
-    studentChoice: null
-  });
-
-  /* ── Problema 9 — Ecuación final con nombres reales ── */
-  var eq9Correct = 'Ingreso_Mensual = 4.67 + 2.71·Horas_Operacion + 9.78·Num_Empleados';
-  var eq9Wrong1  = 'Ingreso_Mensual = 0.89 + 2.64·Horas_Operacion + 9.78·Num_Empleados + 0.77·Antigüedad';
-  var eq9Wrong2  = 'Ingreso_Mensual = 4.67 + 9.78·Horas_Operacion + 2.71·Num_Empleados';
-  var eq9Wrong3  = 'Ingreso_Mensual = 0.89 + 2.71·Horas_Operacion + 9.78·Num_Empleados';
-  var s9p = shuffleOpts([eq9Correct, eq9Wrong1, eq9Wrong2, eq9Wrong3], eq9Correct);
-  addProblem({
-    title: 'Tu turno — Ecuación del modelo final',
-    questionText: 'Con los coeficientes del modelo reducido, ¿cuál es la ecuación de regresión correcta?',
-    fn: 'Ingreso_Mensual = β̂₀ + β̂₁·Horas_Operacion + β̂₂·Num_Empleados',
-    options: s9p.opts,
-    correctIdx: s9p.correctIdx,
-    hint: 'Lee los coeficientes directamente de tu output: constante ≈ 4.67, Horas ≈ 2.71, Empleados ≈ 9.78.',
-    explanation: 'Ingreso_Mensual = 4.67 + 2.71·Horas_Operacion + 9.78·Num_Empleados. Interpretación: cada hora adicional de operación por semana incrementa el ingreso mensual en 2.71 miles de pesos; cada empleado adicional lo incrementa en 9.78 miles de pesos, manteniendo lo demás constante.',
+    title: 'Decisión sobre la actividad',
+    questionText: `En el modelo de ventas con X₁ (Publicidad, p=${pB1.toFixed(3)}), X₂ (Empleados, p=${pB2.toFixed(3)}) y X₃ (Antigüedad, p=${pB3.toFixed(3)}), con α=0.05, ¿cuál variable debe eliminarse y por qué?`,
+    fn: `Criterio: p ≥ α → no significativa → candidata a eliminar`,
+    options: s5p.opts,
+    correctIdx: s5p.correctIdx,
+    hint: `Compara cada p con 0.05. ¿Cuál es mayor que 0.05?`,
+    explanation: `X₃ tiene p = ${pB3.toFixed(3)} > 0.05, por lo que no es estadísticamente significativa y debe eliminarse del modelo.`,
     studentChoice: null
   });
 
