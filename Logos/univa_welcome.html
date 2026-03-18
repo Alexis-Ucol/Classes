@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecuaciones de Primer Grado — UNIVA</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange:       #d95c00;
+  --orange-dark:  #a04000;
+  --orange-bg:    #fdf0e6;
+  --charcoal:     #1a1a1a;
+  --charcoal-dark:#0d0d0d;
+  --sky:          #1c6eb5;
+  --bg:           #fdf6f0;
+  --surface:      #ffffff;
+  --surface2:     #faeee2;
+  --border:       #f0d0b8;
+  --text:         #1a0e08;
+  --text3:        #8a5a3a;
+  --bad:          #b03010;
+  --shadow:       0 4px 24px rgba(150,50,0,.13);
+}
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { font-family:'IBM Plex Sans',sans-serif; background:var(--bg); color:var(--text); line-height:1.65; }
+#welcomeScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1.5rem; }
+.wcard { background:var(--surface); border-radius:16px; box-shadow:var(--shadow); padding:2.4rem 2rem; width:100%; max-width:460px; text-align:center; border-top:4px solid var(--orange); }
+.wlogos { display:flex; justify-content:center; align-items:center; margin-bottom:.8rem; padding-bottom:.8rem; border-bottom:1px solid var(--border); }
+.wlogos img { height:130px; width:auto; object-fit:contain; }
+.wtitle { font-family:'Crimson Pro',serif; font-size:1.65rem; font-weight:700; margin-bottom:1.6rem; color:var(--orange-dark); }
+.flabel { display:block; font-size:.75rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.3rem; text-align:left; }
+.finput { width:100%; padding:.7rem .9rem; border:1.5px solid var(--border); border-radius:8px; background:var(--surface2); color:var(--text); font-size:.95rem; font-family:inherit; margin-bottom:.9rem; transition:border-color .18s; }
+.finput:focus { outline:none; border-color:var(--orange); }
+.sbtn { width:100%; padding:.85rem; background:var(--orange); color:#fff; border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; transition:background .18s; }
+.sbtn:hover { background:var(--orange-dark); }
+.serr { min-height:1.2rem; font-size:.82rem; color:var(--bad); margin-top:.4rem; }
+</style>
+</head>
+<body>
+<div id="welcomeScreen">
+  <div class="wcard">
+    <div class="wlogos">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMTEhMQEBIWFRAVEBcSFw8VEhAQFhgVFxYWFhUVFxUYHisgGBolHBYXITEhMSkrLy4uGCAzODMsNygtLisBCgoKDg0OGg8QGjclICU3Ny0vNzMvNTU3Ni83NzUxNTc3MjUtNSsrNzcvNy01NzcyKzU0NzcsLzQ2NjYxKzcvLv/AABEIAJMBVwMBIgACEQEDEQH/xAAcAAEAAQUBAQAAAAAAAAAAAAAABwIEBQYIAQP/xABOEAABAwIDBQIHCwkGBQUAAAABAAIDBBEFEiEGBxMxUUFhFCIycYGRsQgXIzM0QnJzdKGyNVJUVWKCk9HSFVOSs8HDJENjZPAWGCWi4f/EABsBAQACAwEBAAAAAAAAAAAAAAAFBgECAwcE/8QALhEBAAECBAQEBQUBAAAAAAAAAAECAwQFERIxQVFhBiGxwRQiMnGhFTNC0fAT/9oADAMBAAIRAxEAPwCcUREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERARUv5HzLmvYTAa/FPCDHiL4hC8A5nSuvmv0Pcg6WRQn71OJfrn75v6l771GJfrj75v6k1E1ooU96jEv1x9839Se9RiX64++b+pY1hnSU1ooU96jEv1x9839Se9RiX64++b+pNYNJTWihT3qcS/XH3zf1LVt4OzeIYXFFNJiT5RLIYwGOlbazS69ye5ZYdKIsTgNbnjjvz4bfYFq+3+86LC52U8lO+UviEuZr2tABc5trEfsoN+RRPgm++CoqIaYUkjTLK2IPMjCBmcBci3epWY8HkgqRFr+221MeHU/hUsbntztZlYWg+N26oNgRRB7/tJ+iT+uL+alXD61ssccrdA9jXgG1wHAGx9aC6RajvD25ZhTIZJIXSiV7mWa5rLZQDfUa81o/8A7gIP0KX+LH/JBMyKIaDf1SvkYySlkjY5waZTIxwaD84i3JS1BO14DmEFpAIcNQQdQQg+iIta292vZhkDaiSJ0jXSiPK0tabkE318yDZUUPR7/KYkN8Dm1IHlx9ql5kgPJBWi1PeDtxHhccUskLpRJIWANc1pFgTfXzLR/f8A6f8AQpv4kaCZEXwo6oSMa8fOaHW6XF7KOtrt7rKCqkpJqOQuZYh4kYA5pFw4aIJMRRvsXvep6+pbScF8L3scWOe9rg5zRfJpyNgT6FI7XXQeoipe8AFxNgBcnuHNBUiiCs39UzJHsbSSva15aHiSMBwBtmGnIratgN4LcT4pZTvijiyjiPe1wc51/FAA7AL+kIN1ReAqKsd34U1PUTU7aaSURSGPitexrXFps6wI5XBF+210ErIoa9/+n/Qpf4sf8lIOw+2MOJU/hEQLCHljonEOc0jle3UaoNkREQEREFL+R8yg/cKLw4mO8ex6nB/I+ZQjuC+KxP6Q9j1iappjWGYpiqds81pETGeWvaOqy0EgcLj1Kmppw8d9tCsYx7o3d/aOqxXbw3iDD76Plv08f9zjpPJzouYjw9iNletViqfLt/U9Y5szZLLNbK4RHVtLzLbKbGIeUPPfsW0DZGmtazvPnVVjJcXEzFcbZjqtf6xhZiJpq1ieiPbKiaQNFyti2pwSOlZxRLoTYRu8on9m3NaPLI6R3sCkcr8N3r93df8Altxxnr2j3nkjc18R2sPa22PmuVcI6d59o5vJ5DIeXmarrfi22FYcOkv+2VcUtKGC/wA7r/ovlv3/ACZh/wBd/tlTdeZ2L9z4XDRpbojynrPbt6oezll+xb+KxNWty5PnHSO/f04JJ2S+LZ9BvsChr3R3y+D7GP8AMkUybJfFs+g32BQ37o75fB9jH+ZIjZH2xxtXUh/7qL8YXXODvJbquRdkPl1J9qi/GF1xgnkoMoo090B+Sz9fH7VJajT3QH5LP18ftQczrrnYmQmngv8A3Ef4QuRl1vsP8RD9TH+EING90r8novr5PwNUCQxFzg1ou5xAA7zyU9+6V+T0X18n4GqDMJ+Ph+tZ+IIPjUwOje6OQFr2uLXNPMEaEKZNyG3uUtw2pdp/yHk+uI/6JvV2GMsbsQpm3lYPhmAeUwfPA6j2eZQxHIWkOaSHAghwNiCNQQeqDt9jri6i33RX5Oi+1t/A9Xu6TbsV0HDlNqqIAPH5w7JB5+3vVj7ok/8Ax0X2tv4HoOdafym/SHtXY+ByEjVccQeU36Q9q7EwDkgjf3Sfyal+0H8Dlz+ugPdJ/JqX7QfwOXP6Dr/ZOQmKO/8Adt9gWi+6E2Z4tMyvjb48BySW7YnHQ+hx/wDst42R+Kj+rb7As9iNGyaKSGUXjkY5jh+y4WKDiygrHwyMmiOWSN7Xtd0c03HsXXWxmPNq6aKoZykYHFv5ruTm+hwIXKW1GCvo6uekk8qKQtB/ObzY4edpB9KkncJtLkkfQvOj/hY7/nDy2jzgX9CDoVR/vq2l8Dw9zGG01QeC23MA+W7u0W+xvuLrl3fRtL4ZiD2sN4ae8LOmYH4Q+sW/dQaCult12CGmpYorWe74WT6brXv5hYehQhu6wXwmtjBF44zxX/unxR6Tb711FgVNYXQY7eRtH/Z+HTTg2mLeFD14rwQ0jrlF3furkglSt7oLaXj1jKJh+Cpm3dbkZngE/wCFuUecuUfbLYSaqqipxyc67j0YNXH1ILSuw6SIRulYWiWPiMJ7WkkX+7l5luG6Hac0laI3utDPaN2ugd8x3r09IUjbw9jfCcPL4WfC0zc8YA1MYFnMHoAPnAXP7TbUaEa3QduUsuZt19lH+6XajwyjYXH4Vnwcg/aA0PpFipAQEREFL+R8yhHcF8Vif0h7Hqbn8j5lCO4MfB4m3tzDT0PWtf0y2o+qF+FlMP2YNVFI8HK5ujOhPaD3LFtUh7FAeCtt+e6/rVXyOqqnFxXTOkxEysmd0014WaKo1iZ0RZTTzUk923ZKw2LTyI6EdoK3Jm8gZNYDxLdjhlv5+azm1+zTaphewWnaPFd+db5pUROFr35jQ+hemWv+ONp3VR5xxeZXviMBVtoq+WeDIYliE1XNmfdz3HKyNuoA7GtC2Kp2UdTU7Jnm8hNnt7Gg8gD/AOc1sWxGzDYGNnlF53tB1+YDrYd/UrK7WAeCy36D13FlD51iYuYeuxa8qYjl29vVNZJhJt4ii/d86pnny19/RGxVjv3/ACZh/wBd/tlXxVjv4/JuHjt4v+2VUMi/cr+y351+3T90k7JfFs+g32BQ17o75fB9jH+ZIpl2SHwbPoN9gUa+6N2fkdwK9jS5jGGCS2uXxi5jj3Eki/mVlV1EeyHy6k+1RfjC63wTyVxvQ1TopGSs8tjw9p72m4U34Hvyp2sAnppA+2uRzS2/ba+qCbVGnugPyWfr4/arE7+aL+4m83iKO95m9B2JRtp4ouFThwecxDnuI5XtoAEEcrrfYf4iH6mP8IXK2C4W+pmZBECXPcBe18o7XHuAXWezEGVrWjk1oaPMBZBHnulfk9F9fJ+BqgzCfj4frWfiCnP3Svyei+vk/A1QZhPx8P1rPxBB19gzAWkEXBuLFc+74thDQz+EwN/4SZ17AaRvOpb3A9i6EwLkvvj2ERVUElPM3NG9tiOnQjvCDj/Z7GZaOojqYDZ7Dyvo5va13UFS9vW2jirsEp6iI6GqaHM7WuDHZmnvCi3bTZiXD6p9NLqObJLaPZ2Ef6rENrHiN0IceE54eWX0zNBAdbrYlBRB5TfpD2rsTAOS47g8pv0h7V2JgHJBG/uk/k1L9oP4HLn9dAe6T+TUv2g/gcuf0HXuyHxUf1bfYFsy1nZD4qP6tvsC2ZBCfuidmLsixKNurLQTW/NJ+CefMSW/vNUJ4TiD4Jo54zZ8bw8HzFdlY3hjKmCWmlF45Y3Ru9I5jvBsR5lxxjmFvpaiWllFpIpCw99uTh3EWI7ig6Rx3bpkeDuroyM0sQbEP+o8Wt6Df1LmJziSSTck3JOpJ6kq8mxWV0DKVzrwxvc9rOjnaEqvZ7DDU1EUDfnvAPc3m4+pBMW5nAOHT8Zw8ec5v3B5I9p9KlbHMUZRUc1U/lFGXAdXcmt9JICstmqAMa1rRZrWhoHcNFGvuidpLCHDoz/1pbepjT959SCFa+rfNLJNIbySPc9zj2ucbn2rc92OOUVGZZqp7hK6zGgMc+zObjcdpNh6FplBSOmkZDGLvkeGNHe429SkNu5+c8qhn+B380El0u97CWtymWTlYjgSfyUAbWGmNXM6icXUznl7LtLCM2pbY9Ddbt7zdR+kM/wO/mrHG91dTTwSTiRsmQZixrXA5e0jzILfdLtL4HWta42hmtG7oHX8R3r09K6mpZczQVxGCunt0O1PhdGzObzRfBSdbgaO9I19aCREREHhChLdSfBsZxOgfpndIWN6gPLgf8BBU3KEt7dI/D8Tpcbgb4jnNZLb85otr9Jmn7iDJVcBY97Dza4t9R0W0bDYiAXQOPM5m+ftCs8fiZURx4jTHNDKwFxGtuhPsPmWAY8ggg2INwRoQVT534DFa6cPzC2xsxuG06/iUvKDMSaPCZB2cdwt++pDwnbEABtQ035cRovfztUd1zwah7hyMxcD3F11fshxdq/vmieUKB4gwtyxFEVxzTmtT25xEBradp8YkOd3Ach6T7ExTbJti2naS7+8cLAd4bzK0+aUucXOJLibknUkqpZlmVubc2rU668ZW7LsuriuLtyNNOEEUZc4NHNxA9axW/J4kqMOw5upuC5vS5DfZc+hbls3Ssja+uqCGQQtLsztBoNT5go52XkfimLT4o8HgxuyxA9mlmD0NuSP2l1ybDzRbm5V/L0c83vxXXFuOXH7po2cjs0DoAPUsxV07ZGOY9ocxwILXAEEHmCO1WmEQ5WhZFTSHRDtHuXpJHF8BfDck5GEOZc/su5eYFapPuUeD4tVp3wk+xy6IIVBhHRBzr7y0v6UP4Dv61e0e5hv/NqHu7mMaz23U+cBvReiBvRBoGzGxENKLQRZSfKefGefO4+xbzRUwYLK4DQqkGnbydiG4pHCx8ro+E9z7taHXzAC2vmUbw7mWxyNeKh5yvDvi262N1PJCo4Q6IMdg0RA1WUXjWgcl6g1PeDsVDiUIjkJZIx2ZkzQC5vUa8wVFsm5JoNvCX/w2qflQYh0QQGzcu0EHwh+hv8AFtU04LCWjVZLgjoq2tA5INO3lbEjE4oozMYuHIX3DQ+/ikW596jCTcmAbeFO/hD+a6AIVHBHRBhdnKQxta09jQ2/mFlnlS1gHJVICjLeTuujxCoFW2UxScMMeAwPzlvku5ixtp6ApNXhCDnw7lf+5d/CH81sGxe7YUUzpuIZHFuUXZly359qmDgjoghHRBb4dBlaFFO1+6M1VRLVy1ji+R2bKIhZo7GjXkAphAXjmA80EL7Jbr20lQKgyGRzWkNBYG5S7TNz52uPSpYw6hAbqFdVBjja6SRzWMa0uc9xDWtaBcuc46AAdq+zCLXHLncIPl4K3ovH0bCCCAQRYjqDzCuEQQhj25KMyySRVDmMc8uEfDDst9bXvyWS2C2Ckw6d0rKhz2PZlfGYw0Gxu03vzGvrKltzAeap4I6IEB0F14voAiD1Y3aLBYqynkpp25o5G2PUHm1w6EGxHmWSRBz9gmM1OztS6hrmGXDZHktkAuLH57L9v5zP/DIJweGqjFVhsrJYXa5A4aHtAPYf2TyW14/gUNXE6GojbJGfmkcj1B5g96h/Ed2VbQymfB6p7O3hF2UnoD81484Xz4nC2sRTtrh9GHxVyxVrRLN1NK+M2kY5p7wQtelPwh+krhm8jGqYZK7D2zNGmYMdGT3ktu0+oLz34zz/ALFGf6X+vBut8ns05dXXVE7oqjRxzmucxot0/TNM69WZp6Z7zaNjnHo0ErNswSOnjNTiMrIYG6lpcBfoCe/oLkrSpd5uMVAyUWHthB0zFj5CO8E2aPUVYxbC11dIJsXqnv7REHZiOoAHiMHmCjMPk1q3O6ud3olb+b3a40ojb6qNrNqp8blGH4cwxYewjM8jLmAOj3jsb0ZzPb3SXsbs4yniZDEPEYOZ5uPa495X22c2XjgYI4YwyMdg5k9XHtK26mpw0WCmOCIfSNlhZRFvXxKaLGMJZHLIyN0kWaNsj2tcPCADmaDY6aKYFoO8Xd9/aE0NSKl8L4WZW5GZjcOzhwdcEEFBu1LPmuVGldvVmbJMxlJTNETy0NnxOmhldbpH2E9LlUYPsPVwzRyOxarexkgc6EukyvAOrXePyPJWtDuykgY+CGsHg73ElrqOlkfY6W4jwTy//LIN+2J2pbiFJHVBnDLiWmMuzWc3Q2dYXHoC0ejxOUbTTxGWQwilJEJe8sB8TUMva62TYTZw0MDaYPL2tc52cty+UeVljttd3HhNV4fT1ctNUFga4x31t2gggjzILXfpiMkeHRvhkfG41AGZj3Rm1jpdpX2m3h1Dao4bTUBqZ20scof4Q2IG7WFxfmFmgZudzc26rCVW7CWcsFbiVRPEx1+E7MR32u6wJ62WzUeyGXEH4kJDd9OIODl0AGTXNfXyOnagxj94T54sToqylfS1dNQyTFsVQ0ksyi+SUNOR3jsINnc79iowLb40tNhTXwvdS1TSw1ctSZZI38Rws88MB/YQdNL6aa32IbvA+pravjkOrKM0pjyAhgLYm5gb+N8WNO9VP2Ca/DWYY+Q2jALKjLZzXhxcHgX7yOaC+q94AbXVFGyDPDS05mnquJbKQM2QMy6nlrftPRawN8kphNS2lpeGLkQuxOEVBAP91lzX7rLMbN7CtpoaindI+Z1TcSzuFnEEWA5lYiLdtPFGKeOuAiHK9FSukA6cQjN96DL12892eijpaJ07qym40bOM2JwdYnI64tYWN3X7F82bz5Y6etlrMPfFPSOY3giTMyQyEtFpMtgBbUi/ML6s2J/4mjqhM69LCYgwsb492kFxI5c+QC2LGcCdU00kHFdEXAWkaA61jexa7Qg9oQaVDvcmPCcaakc2QtHDjxSmMrQ7XVjgNey3XTRXH/qSOHGMTe7jlsFCJnNNRnisIonWjgy+I7vzHW+mqxuJbrnysbDLUxmMEEujoaeKQ5er22KzDNg2moqp3SOLKmjFI6K1i1gjZHcPvqbM6dqDF1m32I1NBNUNwwx0r4JLVMdWziMFiOIG2Djbusvpg23MlJhVA8x8eWVtjJNVMp2jXm+WS9z3Lyn3eVTIDR/2nL4JlLOCIYgcp+bmOoHpXtVu0Lo6NsdSWyUjXNbI6FkrXZiDcxuuOzvQZDZ7ek6WrZSVEELQ+N72z09ZFWN8RpcWuyDTQHt9C+OH7xq+rbLNS4UX0jXvj4oq42SENGrmtcBcga2HmuvlR7APFXHWzVPEkY17CxtNDTtIc1zbfBgdjueqow7d9U04fFT4lLHTPe55hEMbjZ2jgHHkbaXCC73H4pJJh5Msj5H+FyjNI90jgA2Owu43tzWA2ydUVuPnDjWTwUzKcOywvc3/AJXEJyggEkm1ytz2E2V8Ah8HbIZBxXSZy3KfGDRa1/2fvVlttu48KqhiEFVLTVGRrSWDnlFgQQQRpoR22Qa5WbATwGOakxadjmyAnwmZ7GkDWwLTqe4hbLtFvElpp20zYIXHhB5nnrYKNhNtcgdqR3rX6rdlNPkFZiU80THh/Cc0kX9LrA2uL96yWIbAvdVSVtPU8J0jGsMb6aGpADWhotxAbaAdEHlNvPqKilruBStFXStafg6mKaPI4H4VsmXK7La+XW+mq+m7vbTE6mKm49EJYpHEPxHjwR+LmIzcBrRyta3bZeYBsD4O6rLpnSeFxhj/AIKOLL5WoDPF+dysFb4Pu5lp30wdXyvp6aXix04YIxfNms5wNyL8wb9EFjje0s+M54qfDJJ6GnqS17fDmUrZ3NBytkblzEA2dlDueW6x20u25qsKhNPG+jfBiUVM6COVwDWiOSzQ5uU5bC2UjQt8xWw027+opnzGhxGSCKWUymLgxyWce93t0Xwbutb4J4IKh5cattW+csBLnNa5oblvy8Y63Qfen2pZBieKSP47m09GyUtNRnjNoo3WjhLRkceuY636r6U+8bE3wNrI8Gz0zhmblq2ueW9Q0NzH/Crl+wTXVFZO+RxbV04gdGGgZQGNZmDr6nxbrGxbvqxkIpWYrM2nAsGNhY1wbfkHg5h60Ge2k3iPp2UxjpReojznwmpiomx6eQ4v1Ll89jd5Jq6t9FNBGx4h4rZoKqOrjcAQC3M0WB169b2Vji2750ktPUQ1LmSQQCEGWJlVmA0zESXFymA7DPgrDXOqOJK6ExOaIIoG6kagR2A5dEEntddF8aMHLqiD7oiICofGDzVaILGXDmlWjsEb09izKIMQ3Bh2q6hw9rexXqIKWsA5KpEQF4QvUQUcIdE4Q6KtEFIjC9IXqIPnwR0VWQKpEFJaEDAqkQU5AhjCqRBQIwqgF6iCgxjonDHRVogoMY6Jwx0VaIKOEOiGMdFWiCgRhVEL1EHz4I6L3hjoq0QUcMdEMY6KtEFHDHRBEOirRBTkC8MQ6KtEFHDHROEFWiDwBF6iAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiIP/9k=" alt="UNIVA — La Universidad Católica">
+    </div>
+    <div class="wtitle">Ecuaciones de Primer Grado</div>
+    <label class="flabel" for="sName">Nombre completo</label>
+    <input class="finput" id="sName" type="text" placeholder="Escribe tu nombre..." autocomplete="name">
+    <label class="flabel" for="sGroup">Grupo</label>
+    <input class="finput" id="sGroup" type="text" placeholder="Ej. 2°A" autocomplete="off">
+    <button class="sbtn" onclick="startLesson()">Comenzar →</button>
+    <div class="serr" id="startErr"></div>
+    <div style="margin-top:1.8rem;display:flex;justify-content:center;">
+      <svg width="160" height="40" viewBox="0 0 170 42" xmlns="http://www.w3.org/2000/svg">
+        <style>.al-text{font-family:'Crimson Pro',serif;font-weight:700;letter-spacing:.08em;fill:#a04000;font-size:20px;}.al-line{stroke:#1c6eb5;stroke-width:2.5;}.al-accent{fill:#1c6eb5;}</style>
+        <polyline points="4,30 10,22 16,25 22,12" fill="none" stroke="#a04000" stroke-width="2.5"/>
+        <circle cx="22" cy="12" r="3" class="al-accent"/>
+        <line x1="34" y1="6" x2="34" y2="36" class="al-line"/>
+        <text x="46" y="28" class="al-text">LIAXA</text>
+      </svg>
+    </div>
+  </div>
+</div>
+<script>
+function startLesson() {
+  var name  = document.getElementById('sName').value.trim();
+  var group = document.getElementById('sGroup').value.trim();
+  var err   = document.getElementById('startErr');
+  if (!name || !group) { err.textContent = 'Por favor completa ambos campos.'; return; }
+  err.textContent = '';
+  alert('Bienvenido/a, ' + name + ' (' + group + ')');
+}
+<\/script>
+</body>
+</html>
