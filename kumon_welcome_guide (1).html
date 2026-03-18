@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Aprendizaje — Kumon</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── DESIGN TOKENS — Kumon palette ── */
+:root {
+  --sky:        #5BC8F5;
+  --sky-dark:   #1aa8e0;
+  --sky-bg:     #e8f7fd;
+  --black:      #1a1a1a;
+  --black-soft: #2e2e2e;
+  --bg:         #f0faff;
+  --surface:    #ffffff;
+  --surface2:   #e8f7fd;
+  --border:     #b8e6f8;
+  --text:       #1a1a1a;
+  --text2:      #3a3a3a;
+  --text3:      #6a7a80;
+  --ok:         #1a8a5a;
+  --ok-bg:      rgba(26,138,90,.10);
+  --bad:        #c03020;
+  --bad-bg:     rgba(192,48,32,.08);
+  --shadow:     0 4px 28px rgba(91,200,245,.22);
+  --accent:     #1a1a1a;
+  --accent-bg:  #1a1a1a;
+}
+[data-theme="dark"] {
+  --bg:#0e1a20; --surface:#152028; --surface2:#1c2c38;
+  --border:#2a4050; --text:#e8f4fa; --text2:#a0bac8; --text3:#607888;
+  --sky-bg:#0e2438; --black:#e8f4fa; --black-soft:#c0d8e8;
+  --ok:#3aaa7a; --ok-bg:rgba(58,170,122,.12);
+  --bad:#d05040; --bad-bg:rgba(208,80,64,.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+
+/* ── WELCOME ── */
+#welcomeScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1.5rem; background: linear-gradient(160deg, #e0f6ff 0%, #f0faff 60%, #fff 100%); }
+.wcard { background:var(--surface); border-radius:20px; box-shadow:var(--shadow); padding:2.6rem 2.2rem; width:100%; max-width:460px; text-align:center; border-top:5px solid var(--sky); }
+.wlogos { display:flex; justify-content:center; align-items:center; gap:1.4rem; margin-bottom:1rem; padding-bottom:.9rem; border-bottom:1px solid var(--border); }
+.kumon-logo img { height:70px; width:auto; object-fit:contain; }
+.wtitle { font-family:'Nunito',sans-serif; font-size:1.7rem; font-weight:800; margin-bottom:.25rem; color:var(--black); letter-spacing:-.01em; }
+.wcourse { font-size:.78rem; color:var(--text3); letter-spacing:.08em; text-transform:uppercase; margin-bottom:1.6rem; font-weight:600; }
+.flabel { display:block; font-size:.75rem; color:var(--text3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:.3rem; text-align:left; font-weight:700; }
+.finput { width:100%; padding:.72rem .95rem; border:2px solid var(--border); border-radius:10px; background:var(--surface2); color:var(--text); font-size:.95rem; font-family:inherit; margin-bottom:.9rem; transition:border-color .18s; font-weight:600; }
+.finput:focus { outline:none; border-color:var(--sky); }
+.sbtn { width:100%; padding:.88rem; background:var(--sky); color:var(--black); border:none; border-radius:12px; font-size:1rem; font-weight:800; cursor:pointer; transition:background .18s, transform .12s; letter-spacing:.02em; }
+.sbtn:hover { background:var(--sky-dark); color:#fff; transform:translateY(-1px); }
+.serr { min-height:1.2rem; font-size:.82rem; color:var(--bad); margin-top:.4rem; font-weight:600; }
+
+/* ── LESSON ── */
+#lessonScreen { display:none; }
+.stickybar { position:sticky; top:0; z-index:100; background:var(--surface); border-bottom:1px solid var(--border); padding:.55rem 1.2rem; display:flex; align-items:center; gap:.7rem; box-shadow:0 2px 10px rgba(91,200,245,.18); }
+.hlogos { display:flex; gap:.5rem; align-items:center; }
+.hlogo-mini { background:#5BC8F5; border-radius:7px; padding:.18rem .55rem; display:flex; align-items:center; gap:.18rem; }
+.hlogo-mini span { font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:900; color:#1a1a1a; letter-spacing:.05em; }
+.hlogo-face { width:14px; height:14px; border-radius:50%; border:1.8px solid #1a1a1a; position:relative; flex-shrink:0; }
+.hlogo-face::before { content:''; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:6px; height:3px; border-bottom:1.5px solid #1a1a1a; border-radius:0 0 4px 4px; }
+.hsep { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+.htitle { font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hchip { font-size:.7rem; background:var(--sky-bg); color:var(--sky-dark); padding:.2rem .65rem; border-radius:20px; white-space:nowrap; flex-shrink:0; font-weight:700; border:1px solid var(--border); }
+.tbtn { background:none; border:1.5px solid var(--border); border-radius:7px; padding:.28rem .55rem; cursor:pointer; font-size:.82rem; color:var(--text2); flex-shrink:0; font-weight:600; }
+.progbar { height:4px; background:var(--border); position:sticky; top:47px; z-index:99; }
+.progfill { height:100%; background:var(--sky); width:0%; transition:width .4s; border-radius:0 2px 2px 0; }
+
+/* ── CONTENT ── */
+.lbody { max-width:760px; margin:0 auto; padding:2rem 1.2rem 4rem; }
+.section { opacity:0; transform:translateY(16px); transition:opacity .48s, transform .48s; margin-bottom:2.8rem; }
+.section.vis { opacity:1; transform:none; }
+.stag { font-size:.68rem; letter-spacing:.13em; text-transform:uppercase; color:var(--sky-dark); font-weight:800; margin-bottom:.45rem; }
+.section h2 { font-family:'Nunito',sans-serif; font-size:1.65rem; font-weight:800; margin-bottom:.7rem; color:var(--black); }
+.section p { color:var(--text2); margin-bottom:.8rem; }
+.callout { background:var(--sky-bg); border-left:4px solid var(--sky); border-radius:0 12px 12px 0; padding:1rem 1.2rem; margin:1rem 0; }
+.callout strong { color:var(--sky-dark); }
+.callout p { margin-bottom:0; }
+
+/* ── RULE CARDS ── */
+.rules-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:.75rem; margin:1.1rem 0; }
+.rcard { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:.9rem; border-top:3px solid var(--sky); }
+.rname { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin-bottom:.35rem; font-weight:700; }
+.rform { font-family:'IBM Plex Mono',monospace; font-size:.85rem; color:var(--sky-dark); font-weight:500; margin-bottom:.3rem; }
+.rnote { font-size:.76rem; color:var(--text3); }
+
+/* ── PROBLEM CARDS ── */
+.pcrd { background:var(--surface); border:2px solid var(--border); border-radius:14px; margin-bottom:1.3rem; overflow:hidden; transition:border-color .25s; }
+.pcrd.ok  { border-color:var(--ok); }
+.pcrd.bad { border-color:var(--bad); }
+.phdr { display:flex; align-items:center; gap:.75rem; padding:.8rem 1rem; background:var(--sky-bg); border-bottom:1px solid var(--border); }
+.pnum { background:var(--sky); color:var(--black); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.76rem; font-weight:900; flex-shrink:0; }
+.ptitle { font-weight:700; font-size:.88rem; }
+.pbody { padding:1rem; }
+.pstmt { background:var(--surface2); border-radius:10px; padding:.85rem .95rem; margin-bottom:.9rem; font-size:.88rem; }
+.pfn { display:block; font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:var(--sky-dark); margin-top:.45rem; font-weight:500; }
+
+/* ── WORK AREA TABS ── */
+.wtabs { display:flex; gap:.35rem; margin-bottom:.5rem; flex-wrap:wrap; }
+.wtab { background:var(--surface2); border:1.5px solid var(--border); border-radius:7px; padding:.26rem .68rem; font-size:.78rem; cursor:pointer; color:var(--text2); transition:all .14s; font-weight:700; }
+.wtab.active, .wtab:hover { background:var(--sky); color:var(--black); border-color:var(--sky); }
+.wpanel { display:none; }
+.wpanel.active { display:block; }
+
+/* ── CANVAS ── */
+.cvwrap { border:1.5px solid var(--border); border-radius:10px; overflow:hidden; background:#fff; }
+.dcanvas { display:block; touch-action:none; cursor:crosshair; width:100%; height:190px; }
+.ctoolbar { display:flex; align-items:center; gap:.35rem; padding:.35rem .55rem; background:var(--surface2); border-top:1px solid var(--border); flex-wrap:wrap; }
+.tbtn2 { background:none; border:1px solid var(--border); border-radius:5px; padding:.22rem .45rem; font-size:.72rem; cursor:pointer; color:var(--text2); font-weight:600; }
+.tbtn2.on { background:var(--sky); color:var(--black); border-color:var(--sky); }
+.cdot { width:17px; height:17px; border-radius:50%; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
+.cdot.sel { border-color:var(--sky-dark); }
+.clrbtn { background:none; border:1px solid var(--border); border-radius:5px; padding:.22rem .45rem; font-size:.72rem; cursor:pointer; color:var(--bad); margin-left:auto; }
+
+/* ── TEXTAREA ── */
+.wtextarea { width:100%; min-height:120px; padding:.65rem; border:1.5px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:.8rem; resize:vertical; }
+.wtextarea:focus { outline:none; border-color:var(--sky); }
+
+/* ── PHOTO ── */
+.pzone { border:2.5px dashed var(--border); border-radius:10px; padding:1.4rem; text-align:center; cursor:pointer; position:relative; transition:border-color .18s; }
+.pzone:hover { border-color:var(--sky); }
+.pzone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.pzicon { font-size:1.7rem; margin-bottom:.35rem; }
+.pztxt { font-size:.8rem; color:var(--text3); font-weight:600; }
+.ppreview { display:none; width:100%; border-radius:8px; margin-top:.5rem; max-height:280px; object-fit:contain; }
+
+/* ── HINT ── */
+.hintbtn { background:none; border:2px solid var(--sky); color:var(--sky-dark); border-radius:8px; padding:.28rem .65rem; font-size:.78rem; cursor:pointer; margin-bottom:.45rem; font-weight:700; transition:all .14s; }
+.hintbtn:hover { background:var(--sky-bg); }
+.hintbox { display:none; background:var(--sky-bg); border-left:3px solid var(--sky); border-radius:0 10px 10px 0; padding:.65rem .85rem; font-size:.83rem; color:var(--text2); }
+.hintbox.show { display:block; }
+
+/* ── MC ── */
+.mcopts { display:flex; flex-direction:column; gap:.45rem; margin-bottom:.6rem; }
+.mcopt { display:flex; align-items:center; gap:.65rem; padding:.65rem .85rem; border:2px solid var(--border); border-radius:10px; cursor:pointer; font-size:.86rem; transition:all .13s; user-select:none; -webkit-user-select:none; font-weight:600; }
+.mcopt:hover:not(.dis) { border-color:var(--sky); background:var(--sky-bg); }
+.mcopt.dis   { cursor:default; pointer-events:none; }
+.mcopt.sc    { border-color:var(--ok);  background:var(--ok-bg);  color:var(--ok); }
+.mcopt.sw    { border-color:var(--bad); background:var(--bad-bg); color:var(--bad); }
+.mcopt.rc    { border-color:var(--ok);  background:var(--ok-bg); }
+.mcfb { display:none; padding:.65rem .85rem; border-radius:10px; font-size:.83rem; margin-top:.25rem; font-weight:600; }
+.mcfb.show  { display:block; }
+.mcfb.fbok  { background:var(--ok-bg);  color:var(--ok); }
+.mcfb.fbbad { background:var(--bad-bg); color:var(--bad); }
+
+/* ── RESULT ── */
+.rpanel { background:var(--surface); border:1.5px solid var(--border); border-radius:14px; padding:1.8rem; text-align:center; }
+.dlbtn { background:var(--sky); color:var(--black); border:none; border-radius:12px; padding:.8rem 1.8rem; font-size:.95rem; font-weight:800; cursor:pointer; transition:background .18s; }
+.dlbtn:hover { background:var(--sky-dark); color:#fff; }
+.dlbtn:disabled { opacity:.6; cursor:wait; }
+
+/* ── STEP BOX ── */
+.stepbox { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; padding:1rem 1.2rem; margin:.9rem 0; }
+.stepbox .step { display:flex; gap:.8rem; margin-bottom:.6rem; align-items:flex-start; }
+.stepbox .step:last-child { margin-bottom:0; }
+.stepnum { background:var(--sky); color:var(--black); border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:900; flex-shrink:0; margin-top:.15rem; }
+.steptext { font-size:.86rem; color:var(--text2); }
+.mono { font-family:'IBM Plex Mono',monospace; font-size:.82rem; color:var(--sky-dark); font-weight:500; }
+
+/* ── DARK MODE TOGGLE ── */
+[data-theme="dark"] body { background:var(--bg); }
+[data-theme="dark"] #welcomeScreen { background: linear-gradient(160deg, #0a1820 0%, #0e1a24 60%, #121e28 100%); }
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcomeScreen">
+  <div class="wcard">
+
+    <!-- Kumon Logo (CSS-rendered, matching uploaded logo style) -->
+    <div class="wlogos">
+      <div class="kumon-logo">
+        <img src="data:image/jpeg;base64,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" alt="Kumon" style="height:70px;width:auto;object-fit:contain;">
+      </div>
+    </div>
+
+    <div class="wtitle">Ecuaciones de Primer Grado</div>
+
+    <label class="flabel" for="nameInput">Nombre del alumno</label>
+    <input class="finput" id="nameInput" type="text" placeholder="Escribe tu nombre completo" autocomplete="off">
+
+    <label class="flabel" for="groupInput">Nivel / Grupo</label>
+    <input class="finput" id="groupInput" type="text" placeholder="Ej. Nivel D — Grupo 2" autocomplete="off">
+
+    <button class="sbtn" onclick="startLesson()">Comenzar ▶</button>
+    <div class="serr" id="errMsg"></div>
+  </div>
+</div>
+
+<!-- LESSON -->
+<div id="lessonScreen">
+
+  <!-- Sticky header -->
+  <div class="stickybar">
+    <div class="hlogos">
+      <div class="hlogo-mini">
+        <span>KUM</span>
+        <div class="hlogo-face"></div>
+        <span>N</span>
+      </div>
+    </div>
+    <div class="hsep"></div>
+    <div class="htitle">Guía de Aprendizaje</div>
+    <div class="hchip" id="studentChip">Alumno</div>
+    <button class="tbtn" onclick="toggleTheme()">🌙</button>
+  </div>
+  <div class="progbar"><div class="progfill" id="progFill"></div></div>
+
+  <!-- Body -->
+  <div class="lbody" id="lessonBody">
+    <!-- Content sections and problem cards are injected here by buildLesson(rng) -->
+  </div>
+
+  <!-- Results panel (hidden until all problems answered) -->
+  <div class="lbody" id="resultZone" style="display:none">
+    <div class="rpanel">
+      <div style="font-size:2.8rem;margin-bottom:.4rem">🎉</div>
+      <div style="font-family:'Nunito',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:.4rem;color:var(--black)">¡Guía completada!</div>
+      <div style="color:var(--text3);font-size:.9rem;margin-bottom:1.2rem">Has respondido todos los ejercicios.</div>
+      <div style="font-size:2.5rem;font-weight:900;color:var(--sky-dark);margin-bottom:.3rem" id="scorePct">—</div>
+      <div style="font-size:.85rem;color:var(--text3);margin-bottom:1.4rem" id="scoreDetail">— / — correctas</div>
+      <button class="dlbtn" id="dlBtn" onclick="generatePDF()">⬇ &nbsp;Descargar Resultados PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ── STATE ── */
+var studentData = {};
+var problems    = [];
+var answeredCount = 0;
+var correctCount  = 0;
+var pendingConfirm = {};   // two-tap confirmation per problem
+
+/* ── THEME ── */
+function toggleTheme() {
+  var t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+}
+
+/* ── NAME HASH → SEED ── */
+function hashName(s) {
+  var h = 2166136261;
+  for (var i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/* ── SHUFFLE OPTIONS ── */
+function shuffleOpts(arr, correct, rng) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(rng() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  return { opts: arr, correctIdx: arr.indexOf(correct) };
+}
+
+/* ── START ── */
+function startLesson() {
+  var name  = document.getElementById('nameInput').value.trim();
+  var group = document.getElementById('groupInput').value.trim();
+  var err   = document.getElementById('errMsg');
+  if (!name)  { err.textContent = 'Por favor escribe tu nombre.'; return; }
+  if (!group) { err.textContent = 'Por favor escribe tu nivel o grupo.'; return; }
+  err.textContent = '';
+  studentData = { name: name, group: group };
+  answeredCount = 0; correctCount = 0;
+  var seed = hashName(name + group);
+  var rng = (function(s) {
+    return function() {
+      s = (s * 1664525 + 1013904223) & 0xffffffff;
+      return (s >>> 0) / 4294967296;
+    };
+  })(seed);
+  buildLesson(rng);
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('lessonScreen').style.display  = 'block';
+  document.getElementById('studentChip').textContent = name + ' · ' + group;
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.section').forEach(function(s) { obs.observe(s); });
+}
+
+/* ── CANVAS ── */
+function initCanvas(canvas) {
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.strokeStyle = '#1aa8e0';
+  ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  var drawing = false, lx = 0, ly = 0;
+  var tb = canvas.closest('.cvwrap').querySelector('.ctoolbar');
+  function getPos(e) { var r = canvas.getBoundingClientRect(); var src = e.touches ? e.touches[0] : e; return [src.clientX - r.left, src.clientY - r.top]; }
+  function onDown(e) { e.preventDefault(); drawing = true; var p = getPos(e); lx = p[0]; ly = p[1]; }
+  function onMove(e) {
+    e.preventDefault();
+    if (!drawing) return;
+    var p = getPos(e);
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(p[0], p[1]); ctx.stroke();
+    lx = p[0]; ly = p[1];
+  }
+  function onUp(e) { e.preventDefault(); drawing = false; }
+  canvas.addEventListener('mousedown', onDown);
+  canvas.addEventListener('mousemove', onMove);
+  canvas.addEventListener('mouseup',   onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  canvas.addEventListener('touchmove',  onMove, { passive: false });
+  canvas.addEventListener('touchend',   onUp,   { passive: false });
+  // toolbar
+  if (tb) {
+    tb.querySelectorAll('.cdot').forEach(function(dot) {
+      dot.addEventListener('click', function() {
+        tb.querySelectorAll('.cdot').forEach(function(d){ d.classList.remove('sel'); });
+        dot.classList.add('sel');
+        ctx.strokeStyle = dot.dataset.color;
+      });
+    });
+    var eraserBtn = tb.querySelector('.tbtn2[data-action="eraser"]');
+    if (eraserBtn) {
+      eraserBtn.addEventListener('click', function() {
+        var on = eraserBtn.classList.toggle('on');
+        ctx.globalCompositeOperation = on ? 'destination-out' : 'source-over';
+      });
+    }
+    var clrBtn = tb.querySelector('.clrbtn');
+    if (clrBtn) {
+      clrBtn.addEventListener('click', function() {
+        ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+      });
+    }
+  }
+}
+
+/* ── WORK AREA TAB SWITCH ── */
+function switchTab(probIdx, tab) {
+  var panels = document.querySelectorAll('#wp-' + probIdx + ' .wpanel');
+  var tabs   = document.querySelectorAll('#wt-' + probIdx + ' .wtab');
+  panels.forEach(function(p){ p.classList.remove('active'); });
+  tabs.forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('panel-' + probIdx + '-' + tab).classList.add('active');
+  document.querySelector('#wt-' + probIdx + ' [data-tab="' + tab + '"]').classList.add('active');
+}
+
+/* ── PHOTO PREVIEW ── */
+function handlePhoto(input, idx) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('pp' + idx);
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ── HINT ── */
+function toggleHint(idx) {
+  var box = document.getElementById('hint' + idx);
+  box.classList.toggle('show');
+}
+
+/* ── TWO-TAP MC ANSWER ── */
+function selectOpt(probIdx, optEl, chosenIdx) {
+  var prob = problems[probIdx];
+  if (prob.studentChoice !== null && prob.studentChoice !== undefined && prob.studentChoice !== -1) return; // already locked
+
+  var allOpts = optEl.closest('.mcopts').querySelectorAll('.mcopt');
+
+  // First tap — highlight as pending confirm
+  if (pendingConfirm[probIdx] !== chosenIdx) {
+    allOpts.forEach(function(o){ o.style.opacity = '0.5'; o.style.borderColor = ''; });
+    optEl.style.opacity = '1';
+    optEl.style.borderColor = 'var(--sky)';
+    optEl.style.background  = 'var(--sky-bg)';
+    pendingConfirm[probIdx] = chosenIdx;
+    var fb = document.getElementById('fb' + probIdx);
+    fb.className = 'mcfb show';
+    fb.style.background = 'var(--sky-bg)';
+    fb.style.color = 'var(--sky-dark)';
+    fb.textContent = 'Toca de nuevo para confirmar tu respuesta.';
+    return;
+  }
+
+  // Second tap — lock answer
+  pendingConfirm[probIdx] = undefined;
+  prob.studentChoice = chosenIdx;
+  var correct = (chosenIdx === prob.correctIdx);
+  if (correct) correctCount++;
+  answeredCount++;
+
+  allOpts.forEach(function(o, i){
+    o.classList.add('dis');
+    o.style.opacity = ''; o.style.borderColor = ''; o.style.background = '';
+    if (i === prob.correctIdx) o.classList.add('rc');
+  });
+  if (correct) { optEl.classList.add('sc'); }
+  else         { optEl.classList.add('sw'); }
+
+  var fb = document.getElementById('fb' + probIdx);
+  fb.style.background = ''; fb.style.color = '';
+  if (correct) {
+    fb.className = 'mcfb show fbok';
+    fb.textContent = '✓ ¡Correcto! ' + (prob.explanation || '');
+  } else {
+    fb.className = 'mcfb show fbbad';
+    fb.textContent = '✗ ' + (prob.explanation || 'Revisa el procedimiento.');
+  }
+
+  // Update progress
+  var pct = Math.round(answeredCount / problems.length * 100);
+  document.getElementById('progFill').style.width = pct + '%';
+
+  // Show result panel when all answered
+  if (answeredCount === problems.length) {
+    setTimeout(function() {
+      document.getElementById('resultZone').style.display = 'block';
+      var scorePct = Math.round(correctCount / problems.length * 100);
+      document.getElementById('scorePct').textContent = scorePct + '%';
+      document.getElementById('scoreDetail').textContent = correctCount + ' / ' + problems.length + ' correctas';
+      document.getElementById('resultZone').scrollIntoView({ behavior: 'smooth' });
+    }, 600);
+  }
+}
+
+/* ── BUILD ONE PROBLEM CARD ── */
+function buildOneCard(prob, i) {
+  var opts = '';
+  prob.options.forEach(function(o, idx) {
+    opts +=
+      '<div class="mcopt" onclick="selectOpt(' + i + ',this,' + idx + ')">' +
+        '<span style="font-family:\'IBM Plex Mono\',monospace;font-size:.78rem;color:var(--text3);flex-shrink:0">' +
+          String.fromCharCode(65 + idx) +
+        '<\/span>' +
+        '<span>' + o + '<\/span>' +
+      '<\/div>';
+  });
+
+  var card = document.createElement('div');
+  card.className = 'pcrd';
+  card.id = 'card' + i;
+  card.innerHTML =
+    '<div class="phdr">' +
+      '<div class="pnum">' + (i + 1) + '<\/div>' +
+      '<div class="ptitle">' + prob.title + '<\/div>' +
+    '<\/div>' +
+    '<div class="pbody">' +
+      '<div class="pstmt">' + prob.questionText +
+        (prob.fn ? '<code class="pfn">' + prob.fn + '<\/code>' : '') +
+      '<\/div>' +
+      '<div class="wtabs" id="wt-' + i + '">' +
+        '<button class="wtab active" data-tab="draw"  onclick="switchTab(' + i + ',\'draw\')">✏️ Traza<\/button>' +
+        '<button class="wtab"        data-tab="type"  onclick="switchTab(' + i + ',\'type\')">⌨️ Escribe<\/button>' +
+        '<button class="wtab"        data-tab="photo" onclick="switchTab(' + i + ',\'photo\')">📷 Foto<\/button>' +
+      '<\/div>' +
+      '<div id="wp-' + i + '">' +
+        '<div class="wpanel active" id="panel-' + i + '-draw">' +
+          '<div class="cvwrap">' +
+            '<canvas class="dcanvas" id="dc' + i + '"><\/canvas>' +
+            '<div class="ctoolbar">' +
+              '<button class="tbtn2" data-action="eraser">Borrador<\/button>' +
+              '<div class="cdot sel" data-color="#1aa8e0" style="background:#1aa8e0"><\/div>' +
+              '<div class="cdot" data-color="#1a1a1a" style="background:#1a1a1a"><\/div>' +
+              '<div class="cdot" data-color="#e05030" style="background:#e05030"><\/div>' +
+              '<button class="clrbtn">Limpiar<\/button>' +
+            '<\/div>' +
+          '<\/div>' +
+        '<\/div>' +
+        '<div class="wpanel" id="panel-' + i + '-type">' +
+          '<textarea class="wtextarea" placeholder="Escribe tu procedimiento aquí…"><\/textarea>' +
+        '<\/div>' +
+        '<div class="wpanel" id="panel-' + i + '-photo">' +
+          '<div class="pzone">' +
+            '<input type="file" accept="image/*" capture="environment" onchange="handlePhoto(this,' + i + ')">' +
+            '<div class="pzicon">📷<\/div>' +
+            '<div class="pztxt">Toca para subir o tomar una foto de tu trabajo<\/div>' +
+          '<\/div>' +
+          '<img class="ppreview" id="pp' + i + '" alt="trabajo del alumno">' +
+        '<\/div>' +
+      '<\/div>' +
+      '<button class="hintbtn" onclick="toggleHint(' + i + ')">💡 Ver pista<\/button>' +
+      '<div class="hintbox" id="hint' + i + '">' + (prob.hint || '') + '<\/div>' +
+      '<div style="margin-top:.7rem">' +
+        '<div style="font-size:.65rem;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:.5rem;font-weight:700">Selecciona tu respuesta:<\/div>' +
+        '<div class="mcopts">' + opts + '<\/div>' +
+        '<div class="mcfb" id="fb' + i + '"><\/div>' +
+      '<\/div>' +
+    '<\/div>';
+  document.getElementById('lessonBody').appendChild(card);
+  setTimeout(function() {
+    var c = document.getElementById('dc' + i);
+    if (c) initCanvas(c);
+  }, 80);
+}
+
+/* ================================================
+   buildLesson — PLACEHOLDER (no content yet)
+   ================================================ */
+function buildLesson(rng) {
+  var body = document.getElementById('lessonBody');
+
+  // ── PLACEHOLDER SECTION ──
+  var sec = document.createElement('div');
+  sec.className = 'section';
+  sec.innerHTML =
+    '<div class="stag">Bienvenida</div>' +
+    '<h2>Aquí irá el contenido de la guía</h2>' +
+    '<p>Esta es la plantilla base para las guías de aprendizaje Kumon. El contenido — secciones de concepto, ejemplos resueltos y tarjetas de problemas — se agregará en el siguiente paso.</p>' +
+    '<div class="callout"><strong>Nota:</strong><p>Los problemas se generan con valores únicos para cada alumno, basados en su nombre. Cada vez que el mismo estudiante ingrese, verá los mismos números.</p><\/div>';
+  body.appendChild(sec);
+
+  /* Example placeholder problem — remove when adding real content */
+  problems.push({
+    title: 'Problema de ejemplo',
+    questionText: 'Este es un problema de demostración. El enunciado completo irá aquí.',
+    fn: '',
+    options: ['Opción A', 'Opción B', 'Opción C', 'Opción D'],
+    correctIdx: 0,
+    explanation: 'Aquí va la explicación de la respuesta correcta.',
+    hint: 'Aquí va la pista para orientar al alumno.',
+    studentChoice: null
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+}
+
+/* ── PDF EXPORT ── */
+async function generatePDF() {
+  var btn = document.getElementById('dlBtn');
+  btn.textContent = 'Generando PDF…';
+  btn.disabled = true;
+  var jspdf = window.jspdf;
+  var doc   = new jspdf.jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+  var PW = 215.9, M = 18, TW = PW - M * 2, PH = doc.internal.pageSize.height;
+  var name = studentData.name, group = studentData.group;
+  var total = problems.length;
+  var pct = Math.round(correctCount / total * 100);
+
+  // Cover — Kumon sky blue header
+  doc.setFillColor(91, 200, 245); doc.rect(0, 0, PW, 5, 'F');
+  doc.setFillColor(26, 26, 26);   doc.rect(0, 5, PW, 55, 'F');
+  doc.setTextColor(91, 200, 245); doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+  doc.text('Kumon  ·  Guía de Aprendizaje', M, 17);
+  doc.setTextColor(232, 244, 250); doc.setFontSize(19); doc.setFont('helvetica', 'bold');
+  doc.text('Guía de Aprendizaje', M, 40);
+  doc.setTextColor(150, 170, 190); doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  doc.text(new Date().toLocaleString('es-MX', { dateStyle: 'long', timeStyle: 'short' }), M, 52);
+  doc.setFillColor(91, 200, 245); doc.rect(0, 60, PW, 2, 'F');
+
+  doc.setFillColor(232, 247, 253); doc.roundedRect(M, 68, TW, 32, 3, 3, 'F');
+  doc.setTextColor(106, 122, 128); doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
+  doc.text('ALUMNO', M + 4, 77); doc.text('NIVEL / GRUPO', 130, 77);
+  doc.setTextColor(26, 26, 26); doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+  doc.text(name, M + 4, 86); doc.text(group, 130, 86);
+
+  var sc = pct >= 70 ? [26, 138, 90] : pct >= 50 ? [26, 168, 224] : [192, 48, 32];
+  doc.setFillColor(255, 255, 255); doc.roundedRect(M, 110, TW, 48, 4, 4, 'F');
+  doc.setDrawColor(sc[0], sc[1], sc[2]); doc.setLineWidth(0.8);
+  doc.roundedRect(M, 110, TW, 48, 4, 4, 'S');
+  doc.setTextColor(sc[0], sc[1], sc[2]); doc.setFontSize(42); doc.setFont('helvetica', 'bold');
+  doc.text(pct + '%', PW / 2, 143, { align: 'center' });
+  doc.setTextColor(130, 140, 160); doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+  doc.text(correctCount + ' correcta(s) de ' + total + ' pregunta(s)', PW / 2, 153, { align: 'center' });
+
+  var pages = doc.internal.getNumberOfPages();
+  for (var p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    doc.setFillColor(91, 200, 245); doc.rect(0, PH - 3, PW, 3, 'F');
+    doc.setTextColor(130, 140, 160); doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
+    doc.text(name + ' · ' + group + '  ·  Página ' + p + '/' + pages, PW / 2, PH - 5, { align: 'center' });
+  }
+
+  doc.save('GuiaKumon_' + name.replace(/\s+/g, '_') + '.pdf');
+  btn.innerHTML = '⬇ &nbsp;Descargar Resultados PDF';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
