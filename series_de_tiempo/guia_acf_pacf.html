@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACF y PACF — Guía de Estacionariedad</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:       #2d6a4f;
+  --green-light: #40916c;
+  --green-bg:    #d8f3dc;
+  --green-text:  #1b4332;
+  --amber:       #b5521b;
+  --amber-bg:    #fdf3e3;
+  --amber-text:  #7c3a0f;
+  --red:         #c1121f;
+  --red-bg:      #fde8e8;
+  --red-text:    #7b0d13;
+  --blue:        #1565c0;
+  --blue-bg:     #e3f0fd;
+  --surface:     #ffffff;
+  --surface2:    #f6f4ef;
+  --surface3:    #ede9e0;
+  --border:      #d8d4c8;
+  --border2:     #c0bbae;
+  --text:        #1a1914;
+  --text2:       #4a4640;
+  --text3:       #7a7468;
+  --gold:        #c9a84c;
+  --gold-dark:   #8c6d1f;
+  --shadow:      0 2px 16px rgba(0,0,0,0.08);
+  --radius:      10px;
+  --radius-sm:   6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--surface2);
+  color: var(--text);
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.page-header {
+  background: var(--text);
+  color: #e8e4da;
+  padding: 2.5rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gold);
+}
+.header-inner { max-width: 860px; margin: 0 auto; }
+.header-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+.header-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+  color: #f0ece2;
+}
+.header-sub {
+  font-size: 0.88rem;
+  color: #a09a8e;
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+/* ── LAYOUT ── */
+.page-body { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+/* ── SECTIONS ── */
+.section { margin-bottom: 3rem; }
+.section-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+  font-weight: 600;
+  background: #fdf3e3;
+  border: 1px solid #e8c97a;
+  border-radius: 20px;
+  padding: 0.2rem 0.7rem;
+  margin-bottom: 0.7rem;
+}
+.section-title {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+.section-body {
+  font-size: 0.9rem;
+  color: var(--text2);
+  margin-bottom: 1.1rem;
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  background: var(--surface);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.9rem 1.1rem;
+  margin: 1rem 0;
+  font-size: 0.86rem;
+  color: var(--text2);
+  line-height: 1.65;
+}
+.callout strong { color: var(--text); }
+
+/* ── TABS ── */
+.tab-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.tab-btn {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+  transition: all 0.15s;
+}
+.tab-btn:hover { border-color: var(--green-light); color: var(--green); }
+.tab-btn.active {
+  background: var(--text);
+  color: #f0ece2;
+  border-color: transparent;
+}
+
+/* ── CHART GRID ── */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 0.85rem;
+}
+@media (max-width: 580px) { .chart-grid { grid-template-columns: 1fr; } }
+
+.chart-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1rem 0.75rem;
+}
+.chart-label {
+  font-size: 0.74rem;
+  color: var(--text3);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.canvas-wrap { position: relative; width: 100%; height: 145px; }
+
+/* ── VERDICT ── */
+.verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  margin-top: 0.1rem;
+}
+.verdict.ok   { background: var(--green-bg);  color: var(--green-text);  border: 1px solid #95d5b2; }
+.verdict.bad  { background: var(--red-bg);    color: var(--red-text);    border: 1px solid #f4a4a4; }
+.verdict.warn { background: var(--amber-bg);  color: var(--amber-text);  border: 1px solid #f0c070; }
+.verdict-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 0.05rem; }
+
+/* ── ID TABLE ── */
+.id-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+  margin-top: 1.1rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.id-table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 0.6rem 0.9rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.id-table td {
+  padding: 0.7rem 0.9rem;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.id-table tr:last-child td { border-bottom: none; }
+.model-tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--green);
+  border: 1px solid var(--border2);
+  white-space: nowrap;
+}
+
+/* ── RULE GRID ── */
+.rule-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 1.2rem;
+}
+@media (max-width: 520px) { .rule-grid { grid-template-columns: 1fr; } }
+
+.rule-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  border-top: 2px solid var(--gold);
+}
+.rule-card .rc-head {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+.rule-card .rc-body {
+  font-size: 0.8rem;
+  color: var(--text3);
+  line-height: 1.55;
+}
+
+/* ── STEPS ── */
+.step-list { margin-top: 0.5rem; }
+.step-row {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin-bottom: 0.85rem;
+}
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--text);
+  color: #f0ece2;
+  font-size: 0.72rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-text {
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.65;
+}
+.step-text code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem;
+  background: var(--surface3);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  color: var(--green);
+}
+
+/* ── LEGEND ── */
+.legend {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  margin: 0.6rem 0 0.2rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  color: var(--text3);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── FOOTER ── */
+.page-footer {
+  background: var(--text);
+  color: #706a60;
+  text-align: center;
+  padding: 1.4rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  border-top: 3px solid var(--gold);
+}
+.page-footer span { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="header-inner">
+    <div class="header-label">Econometría · Series de Tiempo</div>
+    <h1 class="header-title">ACF y PACF — Guía de Estacionariedad</h1>
+    <p class="header-sub">Cómo leer los correlogramas para diagnosticar estacionariedad e identificar el modelo ARIMA correcto.</p>
+  </div>
+</header>
+
+<main class="page-body">
+
+  <!-- ── SECCIÓN 1 ── -->
+  <section class="section">
+    <div class="section-tag">Paso 1</div>
+    <h2 class="section-title">¿Es la serie estacionaria? — lee la ACF</h2>
+    <p class="section-body">
+      Lo primero que verificas en la ACF es <strong>qué tan rápido caen las barras</strong>. En una serie estacionaria, la memoria es corta: las autocorrelaciones caen rápidamente. En una serie no estacionaria, la influencia del pasado persiste durante muchos rezagos. Selecciona un tipo de serie para ver el patrón.
+    </p>
+
+    <div class="tab-row" id="s1tabs">
+      <button class="tab-btn active" onclick="showSeries('stat', this)">Estacionaria (proceso AR)</button>
+      <button class="tab-btn" onclick="showSeries('rw', this)">No estacionaria (caminata aleatoria)</button>
+      <button class="tab-btn" onclick="showSeries('seas', this)">No estacionaria + estacional</button>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-label">Serie Y<sub>t</sub></div>
+        <div class="canvas-wrap"><canvas id="cSeries"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">ACF — barras fuera de las líneas punteadas son significativas</div>
+        <div class="canvas-wrap"><canvas id="cAcf1"></canvas></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#2d6a4f"></div>Barra significativa (|ρ| &gt; 1.96/√n)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#b4b2a9"></div>Barra no significativa</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c9a84c;height:3px;border-radius:1px;width:16px"></div>Banda de confianza 95%</div>
+    </div>
+
+    <div id="verdict1" class="verdict ok">
+      <span class="verdict-icon">✓</span>
+      <span id="verdict1txt">Estacionaria: la ACF cae rápidamente. La mayoría de los rezagos quedan dentro de las bandas de confianza desde el rezago 3 en adelante.</span>
+    </div>
+
+    <div class="callout" style="margin-top:1rem">
+      <strong>Regla de oro:</strong> si las barras de la ACF decaen <em>lentamente</em> y permanecen significativas durante muchos rezagos consecutivos, la serie tiene raíz unitaria y necesita diferenciación. Si caen <em>rápido</em>, la serie es estacionaria y puedes pasar al paso 2.
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SECCIÓN 2 ── -->
+  <section class="section">
+    <div class="section-tag">Paso 2 — una vez estacionaria</div>
+    <h2 class="section-title">Identificar el modelo — ACF + PACF juntas</h2>
+    <p class="section-body">
+      Cuando ya sabes que la serie es estacionaria, los dos correlogramas juntos revelan el orden del modelo ARIMA. La <strong>ACF</strong> identifica el componente MA; la <strong>PACF</strong> identifica el componente AR. Selecciona un proceso para ver su firma característica.
+    </p>
+
+    <div class="tab-row" id="s2tabs">
+      <button class="tab-btn active" onclick="showModel('ar1', this)">AR(1)</button>
+      <button class="tab-btn" onclick="showModel('ar2', this)">AR(2)</button>
+      <button class="tab-btn" onclick="showModel('ma1', this)">MA(1)</button>
+      <button class="tab-btn" onclick="showModel('arma', this)">ARMA(1,1)</button>
+      <button class="tab-btn" onclick="showModel('wn', this)">Ruido blanco</button>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-label">ACF</div>
+        <div class="canvas-wrap"><canvas id="cAcf2"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">PACF</div>
+        <div class="canvas-wrap"><canvas id="cPacf2"></canvas></div>
+      </div>
+    </div>
+
+    <div id="verdict2" class="verdict ok">
+      <span class="verdict-icon" id="icon2">✓</span>
+      <span id="verdict2txt">AR(1): la PACF se corta abruptamente después del rezago 1. La ACF decae exponencialmente hacia cero.</span>
+    </div>
+
+    <table class="id-table">
+      <thead>
+        <tr>
+          <th>Proceso</th>
+          <th>Patrón de la ACF</th>
+          <th>Patrón de la PACF</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="model-tag">AR(p)</span></td>
+          <td>Decae gradualmente (exponencial o sinusoidal)</td>
+          <td>Se corta abruptamente después del rezago p</td>
+        </tr>
+        <tr>
+          <td><span class="model-tag">MA(q)</span></td>
+          <td>Se corta abruptamente después del rezago q</td>
+          <td>Decae gradualmente</td>
+        </tr>
+        <tr>
+          <td><span class="model-tag">ARMA(p,q)</span></td>
+          <td>Decae gradualmente — sin corte limpio</td>
+          <td>Decae gradualmente — sin corte limpio</td>
+        </tr>
+        <tr>
+          <td><span class="model-tag">Ruido blanco</span></td>
+          <td>Todos los rezagos no significativos</td>
+          <td>Todos los rezagos no significativos</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SECCIÓN 3 ── -->
+  <section class="section">
+    <div class="section-tag">Paso 3</div>
+    <h2 class="section-title">Patrones estacionales — picos en múltiplos de s</h2>
+    <p class="section-body">
+      Cuando una serie tiene estacionalidad de período s, la ACF muestra picos pronunciados en los rezagos s, 2s, 3s… Esto indica que se necesita diferenciación estacional o un modelo SARIMA. Después de aplicar <code style="font-family:'IBM Plex Mono',monospace;font-size:0.85rem;background:var(--surface3);padding:0.1rem 0.35rem;border-radius:3px;color:var(--green)">diff(x, lag=12)</code>, esos picos deben desaparecer.
+    </p>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <div class="chart-label">ACF — serie estacional antes de diferenciar (s = 12, datos mensuales)</div>
+        <div class="canvas-wrap"><canvas id="cSeas1"></canvas></div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-label">ACF — después de la diferenciación estacional diff(x, lag = 12)</div>
+        <div class="canvas-wrap"><canvas id="cSeas2"></canvas></div>
+      </div>
+    </div>
+
+    <div class="legend" style="margin-bottom:0.5rem">
+      <div class="legend-item"><div class="legend-dot" style="background:#185fa5"></div>Pico estacional (lag 12, 24…)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2d6a4f"></div>Barra significativa no estacional</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#b4b2a9"></div>No significativa</div>
+    </div>
+
+    <div class="verdict warn">
+      <span class="verdict-icon">!</span>
+      <span>El pico azul en el rezago 12 (gráfica izquierda) es la firma estacional. Después de diferenciar (gráfica derecha), el pico desaparece y la ACF se comporta como la de una serie estacionaria ordinaria.</span>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SECCIÓN 4 ── -->
+  <section class="section">
+    <div class="section-tag">Flujo de trabajo completo</div>
+    <h2 class="section-title">Cómo aplicar todo esto en la práctica</h2>
+
+    <div class="step-list">
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-text">Grafica la serie. ¿Tiene tendencia creciente o varianza que se expande? → probablemente no es estacionaria.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-text">Grafica la ACF. Si las barras decaen lentamente durante muchos rezagos → no es estacionaria. Aplica <code>diff()</code> y repite.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-text">Confirma formalmente con la prueba ADF: si p &lt; 0.05 → la serie es estacionaria y puedes continuar.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">4</div>
+        <div class="step-text">Revisa si hay picos estacionales en la ACF en múltiplos de s. Si los hay, aplica <code>diff(x, lag=s)</code>.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">5</div>
+        <div class="step-text">Lee ACF + PACF juntas sobre la serie estacionaria para identificar los órdenes p y q de tu modelo ARIMA.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">6</div>
+        <div class="step-text">Si la varianza crece con el nivel (ej. AirPassengers), aplica primero <code>log()</code> antes de cualquier diferenciación para estabilizarla.</div>
+      </div>
+    </div>
+
+    <div class="rule-grid">
+      <div class="rule-card">
+        <div class="rc-head">Bandas de confianza</div>
+        <div class="rc-body">Se trazan en ±1.96 / √n. Las barras fuera de esas bandas son estadísticamente significativas al 95%.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rc-head">Sobre-diferenciación</div>
+        <div class="rc-body">Aplicar más diferencias de las necesarias amplifica el ruido y crea autocorrelación negativa artificial cerca del rezago 1.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rc-head">Ambigüedad en la ACF</div>
+        <div class="rc-body">Los patrones pueden ser ruidosos con muestras pequeñas. Los procesos ARMA no siempre muestran cortes limpios — usa el criterio AIC para elegir el orden.</div>
+      </div>
+      <div class="rule-card">
+        <div class="rc-head">Logaritmo primero</div>
+        <div class="rc-body">Cuando la varianza crece con el nivel, aplica log() antes de diferenciar. Esto convierte varianza multiplicativa en aditiva.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page-footer">
+  Econometría · Series de Tiempo &nbsp;·&nbsp; <span>Facultad de Economía · Universidad de Colima</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var _charts = {};
+
+function seededRand(seed) {
+  var s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0x7fffffff;
+    return (s / 0x7fffffff) * 2 - 1;
+  };
+}
+
+function genAR1(phi, n, seed) {
+  var r = seededRand(seed), y = [0];
+  for (var i = 1; i < n; i++) y.push(phi * y[i-1] + r() * 0.9);
+  return y;
+}
+
+function genRW(n, seed) {
+  var r = seededRand(seed), y = [0];
+  for (var i = 1; i < n; i++) y.push(y[i-1] + r() * 0.7);
+  return y;
+}
+
+function genSeasonal(n, s, seed) {
+  var r = seededRand(seed), y = [];
+  for (var i = 0; i < n; i++) {
+    y.push(Math.sin(2 * Math.PI * i / s) * 2 + r() * 0.35 + i * 0.01);
+  }
+  return y;
+}
+
+function computeACF(y, maxlag) {
+  var n = y.length, mean = 0;
+  for (var i = 0; i < n; i++) mean += y[i];
+  mean /= n;
+  var denom = 0;
+  for (var i = 0; i < n; i++) denom += (y[i] - mean) * (y[i] - mean);
+  var res = [];
+  for (var k = 1; k <= maxlag; k++) {
+    var num = 0;
+    for (var i = k; i < n; i++) num += (y[i] - mean) * (y[i-k] - mean);
+    res.push(num / denom);
+  }
+  return res;
+}
+
+function destroyChart(id) {
+  if (_charts[id]) { try { _charts[id].destroy(); } catch(e){} _charts[id] = null; }
+}
+
+var BAND_PLUGIN = {
+  id: 'bandPlugin',
+  afterDraw: function(chart) {
+    var n = chart._bandN || 200;
+    var band = 1.96 / Math.sqrt(n);
+    var ctx = chart.ctx;
+    var yS  = chart.scales.y;
+    var xS  = chart.scales.x;
+    var yUp = yS.getPixelForValue(band);
+    var yDn = yS.getPixelForValue(-band);
+    var yZ  = yS.getPixelForValue(0);
+    var L   = xS.left, R = xS.right;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(201,168,76,0.10)';
+    ctx.fillRect(L, yUp, R - L, yDn - yUp);
+
+    ctx.strokeStyle = '#c9a84c';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(L, yUp); ctx.lineTo(R, yUp); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(L, yDn); ctx.lineTo(R, yDn); ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(L, yZ); ctx.lineTo(R, yZ); ctx.stroke();
+    ctx.restore();
+  }
+};
+
+function drawCorrelogram(canvasId, vals, n, seasonalLags) {
+  destroyChart(canvasId);
+  var band = 1.96 / Math.sqrt(n);
+  var labels = vals.map(function(_, i) { return i + 1; });
+  var colors = vals.map(function(v, i) {
+    if (seasonalLags && seasonalLags.indexOf(i + 1) !== -1) return '#185fa5';
+    return Math.abs(v) > band ? '#2d6a4f' : '#b4b2a9';
+  });
+  var ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  var ch = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0, barPercentage: 0.6, categoryPercentage: 0.8 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      layout: { padding: { top: 12, right: 8, bottom: 2, left: 2 } },
+      scales: {
+        x: {
+          grid: { color: 'rgba(0,0,0,0.05)', lineWidth: 0.5 },
+          ticks: { color: '#7a7468', font: { size: 10, family: 'IBM Plex Mono' } },
+          border: { color: 'rgba(0,0,0,0.12)' }
+        },
+        y: {
+          min: -1.1, max: 1.1,
+          grid: { color: 'rgba(0,0,0,0.05)', lineWidth: 0.5 },
+          ticks: { color: '#7a7468', font: { size: 10, family: 'IBM Plex Mono' }, maxTicksLimit: 5 },
+          border: { color: 'rgba(0,0,0,0.12)' }
+        }
+      },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } }
+    },
+    plugins: [BAND_PLUGIN]
+  });
+  ch._bandN = n;
+  _charts[canvasId] = ch;
+}
+
+function drawSeries(canvasId, y) {
+  destroyChart(canvasId);
+  var ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  _charts[canvasId] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: y.map(function(_, i){ return i; }),
+      datasets: [{
+        data: y,
+        borderColor: '#185fa5',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.2,
+        fill: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      layout: { padding: { top: 8, right: 8, bottom: 4, left: 2 } },
+      scales: {
+        x: { display: false },
+        y: {
+          grid: { color: 'rgba(0,0,0,0.05)', lineWidth: 0.5 },
+          ticks: { color: '#7a7468', font: { size: 10 }, maxTicksLimit: 4 },
+          border: { color: 'rgba(0,0,0,0.12)' }
+        }
+      },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } }
+    }
+  });
+}
+
+var SERIES_CFG = {
+  stat: {
+    gen:    function(){ return genAR1(0.75, 200, 17); },
+    maxlag: 20, n: 200,
+    cls: 'ok', icon: '✓',
+    msg: 'Estacionaria: la ACF cae rápidamente. La mayoría de los rezagos quedan dentro de las bandas de confianza desde el rezago 3–4 en adelante.'
+  },
+  rw: {
+    gen:    function(){ return genRW(200, 29); },
+    maxlag: 20, n: 200,
+    cls: 'bad', icon: '✗',
+    msg: 'No estacionaria (caminata aleatoria): la ACF decae muy lentamente — las barras permanecen altas y significativas en todos los rezagos. Se necesita diferenciar.'
+  },
+  seas: {
+    gen:    function(){ return genSeasonal(144, 12, 41); },
+    maxlag: 28, n: 144,
+    cls: 'bad', icon: '✗',
+    msg: 'No estacionaria + estacional: decaimiento lento general (raíz unitaria) más picos visibles en los rezagos 12 y 24 (patrón anual). Se necesita diferenciación estacional.'
+  }
+};
+
+function showSeries(type, btn) {
+  document.querySelectorAll('#s1tabs .tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var cfg = SERIES_CFG[type];
+  var y = cfg.gen();
+  var avals = computeACF(y, cfg.maxlag);
+  drawSeries('cSeries', y);
+  drawCorrelogram('cAcf1', avals, cfg.n, type === 'seas' ? [12, 24] : null);
+  var v = document.getElementById('verdict1');
+  v.className = 'verdict ' + cfg.cls;
+  document.getElementById('verdict1txt').textContent = cfg.msg;
+  var ic = v.querySelector('.verdict-icon');
+  if (ic) ic.textContent = cfg.icon;
+}
+
+var MODEL_CFG = {
+  ar1: {
+    acf:  [0.78, 0.61, 0.48, 0.37, 0.29, 0.22, 0.17, 0.13, 0.10, 0.08, 0.06, 0.05, 0.04, 0.03, 0.02],
+    pacf: [0.78, 0.04,-0.03, 0.05,-0.02, 0.04,-0.01, 0.03,-0.04, 0.02,-0.03, 0.01, 0.04,-0.02, 0.03],
+    cls: 'ok', icon: '✓',
+    msg: 'AR(1): la PACF se corta abruptamente después del rezago 1. La ACF decae exponencialmente hacia cero. → Usar ARIMA(1, d, 0).'
+  },
+  ar2: {
+    acf:  [0.72, 0.42, 0.22, 0.09,-0.01,-0.07,-0.11,-0.12,-0.11,-0.09,-0.07,-0.05,-0.03,-0.01, 0.01],
+    pacf: [0.72,-0.45, 0.05,-0.03, 0.04,-0.02, 0.05,-0.03, 0.02,-0.04, 0.01, 0.03,-0.02, 0.04,-0.01],
+    cls: 'ok', icon: '✓',
+    msg: 'AR(2): la PACF se corta después del rezago 2 (dos picos significativos). La ACF muestra oscilación amortiguada. → Usar ARIMA(2, d, 0).'
+  },
+  ma1: {
+    acf:  [0.65, 0.05,-0.03, 0.04,-0.02, 0.05,-0.03, 0.02,-0.04, 0.03,-0.02, 0.04,-0.01, 0.03,-0.05],
+    pacf: [0.65,-0.42, 0.27,-0.18, 0.12,-0.08, 0.05,-0.03, 0.02,-0.01, 0.03,-0.02, 0.04,-0.01, 0.02],
+    cls: 'ok', icon: '✓',
+    msg: 'MA(1): la ACF se corta abruptamente después del rezago 1. La PACF decae gradualmente. Imagen espejo del AR(1). → Usar ARIMA(0, d, 1).'
+  },
+  arma: {
+    acf:  [0.68, 0.46, 0.31, 0.21, 0.14, 0.10, 0.07, 0.05, 0.03, 0.02, 0.01, 0.01, 0.00, 0.01,-0.01],
+    pacf: [0.68,-0.28, 0.16,-0.10, 0.06,-0.04, 0.03,-0.02, 0.01,-0.01, 0.02,-0.01, 0.01,-0.02, 0.01],
+    cls: 'warn', icon: '!',
+    msg: 'ARMA(1,1): tanto la ACF como la PACF decaen gradualmente sin un corte limpio. No hay un rezago dominante — es difícil leer visualmente. Usa el criterio AIC para elegir el orden.'
+  },
+  wn: {
+    acf:  [ 0.07,-0.09, 0.05,-0.11, 0.08,-0.04, 0.09,-0.06, 0.11,-0.07, 0.04,-0.08, 0.06,-0.03, 0.09],
+    pacf: [-0.06, 0.08,-0.10, 0.07,-0.05, 0.09,-0.07, 0.04,-0.08, 0.06, 0.10,-0.05, 0.07,-0.09, 0.04],
+    cls: 'ok', icon: '✓',
+    msg: 'Ruido blanco: prácticamente todos los rezagos de la ACF y la PACF caen dentro de las bandas. No queda estructura que modelar — la serie ya está completamente explicada.'
+  }
+};
+
+function showModel(type, btn) {
+  document.querySelectorAll('#s2tabs .tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var cfg = MODEL_CFG[type];
+  drawCorrelogram('cAcf2',  cfg.acf,  250, null);
+  drawCorrelogram('cPacf2', cfg.pacf, 250, null);
+  var v = document.getElementById('verdict2');
+  v.className = 'verdict ' + cfg.cls;
+  document.getElementById('verdict2txt').textContent = cfg.msg;
+  var ic = v.querySelector('.verdict-icon');
+  if (ic) ic.textContent = cfg.icon;
+}
+
+function drawSeasonalPair() {
+  var before = [0.84,0.62,0.40,0.20,0.04,-0.10,-0.22,-0.31,-0.39,-0.45,-0.49, 0.91, 0.72,0.53,0.33,0.15,-0.01,-0.15,-0.26,-0.34,-0.40,-0.44,-0.47, 0.78];
+  var after  = [0.23,-0.09,0.07,-0.13,0.06,-0.05,0.10,-0.07,0.04,-0.03, 0.08,  0.06, 0.04,-0.08,0.05,-0.04,0.09,-0.05,0.03,-0.07, 0.04,-0.02, 0.06,-0.03];
+  drawCorrelogram('cSeas1', before, 144, [12, 24]);
+  drawCorrelogram('cSeas2', after,  132, null);
+}
+
+window.showSeries = showSeries;
+window.showModel  = showModel;
+
+window.addEventListener('load', function() {
+  showSeries('stat', document.querySelector('#s1tabs .tab-btn'));
+  showModel('ar1',   document.querySelector('#s2tabs .tab-btn'));
+  drawSeasonalPair();
+});
+</script>
+</body>
+</html>
