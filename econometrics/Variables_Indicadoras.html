@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variables Indicadoras — Econometría</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── DESIGN TOKENS ── */
+:root {
+  --green:      #4a7c3f;
+  --green-dark: #2d5a27;
+  --green-bg:   #eaf0e7;
+  --gold:       #c9a84c;
+  --gold-bg:    #faf3e0;
+  --bg:         #f8f6f1;
+  --surface:    #ffffff;
+  --surface2:   #f0ede6;
+  --border:     #ddd8cc;
+  --text:       #1a1a16;
+  --text2:      #4a4640;
+  --text3:      #7a7468;
+  --ok:         #2d6a4f;
+  --ok-bg:      rgba(45,106,79,.10);
+  --bad:        #8b2500;
+  --bad-bg:     rgba(139,37,0,.08);
+  --shadow:     0 4px 20px rgba(0,0,0,.09);
+}
+[data-theme="dark"] {
+  --bg:#18181a; --surface:#242420; --surface2:#2e2e28;
+  --border:#3a3830; --text:#e8e4da; --text2:#b0aa9e; --text3:#7a7468;
+  --green-bg:#1a281a; --gold-bg:#241e0e;
+  --ok:#4a9a6f; --ok-bg:rgba(74,154,111,.12);
+  --bad:#c05030; --bad-bg:rgba(192,80,48,.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.65; }
+
+/* ── WELCOME ── */
+#welcomeScreen { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:1.5rem; }
+.wcard { background:var(--surface); border-radius:16px; box-shadow:var(--shadow); padding:2.4rem 2rem; width:100%; max-width:460px; text-align:center; }
+.wlogos { display:flex; justify-content:center; align-items:center; gap:1.4rem; margin-bottom:1.6rem; padding-bottom:1.6rem; border-bottom:1px solid var(--border); }
+.wlogos img { height:50px; width:auto; object-fit:contain; }
+.wlogsep { width:1px; height:40px; background:var(--border); flex-shrink:0; }
+.wtitle { font-family:'Crimson Pro',serif; font-size:1.65rem; font-weight:700; margin-bottom:.25rem; }
+.wcourse { font-size:.78rem; color:var(--text3); letter-spacing:.07em; text-transform:uppercase; margin-bottom:1.6rem; }
+.flabel { display:block; font-size:.75rem; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:.3rem; text-align:left; }
+.finput { width:100%; padding:.7rem .9rem; border:1.5px solid var(--border); border-radius:8px; background:var(--surface2); color:var(--text); font-size:.95rem; font-family:inherit; margin-bottom:.9rem; transition:border-color .18s; }
+.finput:focus { outline:none; border-color:var(--green); }
+.sbtn { width:100%; padding:.85rem; background:var(--green); color:#fff; border:none; border-radius:10px; font-size:1rem; font-weight:600; cursor:pointer; transition:background .18s; }
+.sbtn:hover { background:var(--green-dark); }
+.serr { min-height:1.2rem; font-size:.82rem; color:var(--bad); margin-top:.4rem; }
+.wfoot { margin-top:1rem; font-size:.75rem; color:var(--text3); }
+
+/* ── LESSON ── */
+#lessonScreen { display:none; }
+.stickybar { position:sticky; top:0; z-index:100; background:var(--surface); border-bottom:1px solid var(--border); padding:.55rem 1.2rem; display:flex; align-items:center; gap:.7rem; box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.hlogos { display:flex; gap:.5rem; align-items:center; }
+.hlogos img { height:26px; width:auto; }
+.hsep { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+.htitle { font-family:'Crimson Pro',serif; font-size:1rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.halexis { flex:1; display:flex; justify-content:center; align-items:center; }
+.hchip { font-size:.7rem; background:var(--green-bg); color:var(--green-dark); padding:.2rem .65rem; border-radius:20px; white-space:nowrap; flex-shrink:0; }
+.tbtn { background:none; border:1px solid var(--border); border-radius:7px; padding:.28rem .55rem; cursor:pointer; font-size:.82rem; color:var(--text2); flex-shrink:0; }
+.progbar { height:3px; background:var(--border); position:sticky; top:47px; z-index:99; }
+.progfill { height:100%; background:var(--green); width:0%; transition:width .4s; }
+
+/* ── CONTENT ── */
+.lbody { max-width:760px; margin:0 auto; padding:2rem 1.2rem 4rem; }
+.section { opacity:0; transform:translateY(16px); transition:opacity .48s, transform .48s; margin-bottom:2.8rem; }
+.section.vis { opacity:1; transform:none; }
+.stag { font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); font-weight:600; margin-bottom:.45rem; }
+.section h2 { font-family:'Crimson Pro',serif; font-size:1.65rem; font-weight:700; margin-bottom:.7rem; }
+.section p { color:var(--text2); margin-bottom:.8rem; }
+.callout { background:var(--green-bg); border-left:4px solid var(--green); border-radius:0 10px 10px 0; padding:1rem 1.2rem; margin:1rem 0; }
+.callout strong { color:var(--green-dark); }
+.callout p { margin-bottom:0; }
+
+/* ── RULE CARDS ── */
+.rules-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:.75rem; margin:1.1rem 0; }
+.rcard { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:.9rem; border-top:3px solid var(--green); }
+.rname { font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--text3); margin-bottom:.35rem; }
+.rform { font-family:'IBM Plex Mono',monospace; font-size:.85rem; color:var(--green-dark); font-weight:500; margin-bottom:.3rem; }
+.rnote { font-size:.76rem; color:var(--text3); }
+
+/* ── TABLE ── */
+.dtable { width:100%; border-collapse:collapse; margin:1rem 0; font-size:.86rem; }
+.dtable th { background:var(--green); color:#fff; padding:.55rem .8rem; text-align:left; font-weight:600; font-size:.78rem; letter-spacing:.04em; }
+.dtable td { padding:.5rem .8rem; border-bottom:1px solid var(--border); color:var(--text2); }
+.dtable tr:nth-child(even) td { background:var(--surface2); }
+.dtable td.zero { color:var(--text3); font-family:'IBM Plex Mono',monospace; }
+.dtable td.one  { color:var(--green-dark); font-family:'IBM Plex Mono',monospace; font-weight:600; }
+.dtable td.num  { font-family:'IBM Plex Mono',monospace; }
+
+/* ── EQUATION DISPLAY ── */
+.eqbox { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:1rem 1.3rem; margin:.9rem 0; font-family:'IBM Plex Mono',monospace; font-size:.95rem; color:var(--green-dark); text-align:center; }
+.eqbox .eq-label { font-family:'IBM Plex Sans',sans-serif; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text3); margin-bottom:.4rem; }
+
+/* ── COEF CARDS ── */
+.coef-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.75rem; margin:1rem 0; }
+.coef-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:.9rem; }
+.coef-name { font-family:'IBM Plex Mono',monospace; font-size:.82rem; color:var(--green-dark); font-weight:600; margin-bottom:.3rem; }
+.coef-val  { font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:.25rem; }
+.coef-note { font-size:.76rem; color:var(--text3); }
+
+/* ── PROBLEM CARDS ── */
+.pcrd { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; margin-bottom:1.3rem; overflow:hidden; transition:border-color .25s; }
+.pcrd.ok  { border-color:var(--ok); }
+.pcrd.bad { border-color:var(--bad); }
+.phdr { display:flex; align-items:center; gap:.75rem; padding:.8rem 1rem; background:var(--surface2); border-bottom:1px solid var(--border); }
+.pnum { background:var(--green); color:#fff; width:25px; height:25px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.76rem; font-weight:700; flex-shrink:0; }
+.ptitle { font-weight:600; font-size:.88rem; }
+.pbody { padding:1rem; }
+.pstmt { background:var(--surface2); border-radius:8px; padding:.85rem .95rem; margin-bottom:.9rem; font-size:.88rem; }
+.pfn { display:block; font-family:'IBM Plex Mono',monospace; font-size:.76rem; color:var(--green-dark); margin-top:.45rem; font-weight:500; }
+
+/* ── WORK AREA TABS ── */
+.wtabs { display:flex; gap:.35rem; margin-bottom:.5rem; flex-wrap:wrap; }
+.wtab { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:.26rem .68rem; font-size:.78rem; cursor:pointer; color:var(--text2); transition:all .14s; }
+.wtab.active, .wtab:hover { background:var(--green); color:#fff; border-color:var(--green); }
+.wpanel { display:none; }
+.wpanel.active { display:block; }
+
+/* ── CANVAS ── */
+.cvwrap { border:1px solid var(--border); border-radius:8px; overflow:hidden; background:#fff; }
+.dcanvas { display:block; touch-action:none; cursor:crosshair; width:100%; height:190px; }
+.ctoolbar { display:flex; align-items:center; gap:.35rem; padding:.35rem .55rem; background:var(--surface2); border-top:1px solid var(--border); flex-wrap:wrap; }
+.tbtn2 { background:none; border:1px solid var(--border); border-radius:5px; padding:.22rem .45rem; font-size:.72rem; cursor:pointer; color:var(--text2); }
+.tbtn2.on { background:var(--green); color:#fff; border-color:var(--green); }
+.cdot { width:17px; height:17px; border-radius:50%; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
+.cdot.sel { border-color:var(--gold); }
+.clrbtn { background:none; border:1px solid var(--border); border-radius:5px; padding:.22rem .45rem; font-size:.72rem; cursor:pointer; color:var(--bad); margin-left:auto; }
+
+/* ── TEXTAREA ── */
+.wtextarea { width:100%; min-height:120px; padding:.65rem; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:.8rem; resize:vertical; }
+.wtextarea:focus { outline:none; border-color:var(--green); }
+
+/* ── PHOTO ── */
+.pzone { border:2px dashed var(--border); border-radius:8px; padding:1.4rem; text-align:center; cursor:pointer; position:relative; transition:border-color .18s; }
+.pzone:hover { border-color:var(--green); }
+.pzone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.pzicon { font-size:1.7rem; margin-bottom:.35rem; }
+.pztxt { font-size:.8rem; color:var(--text3); }
+.ppreview { display:none; width:100%; border-radius:8px; margin-top:.5rem; max-height:280px; object-fit:contain; }
+
+/* ── HINT ── */
+.hintbtn { background:none; border:1px solid var(--gold); color:var(--gold); border-radius:6px; padding:.28rem .65rem; font-size:.78rem; cursor:pointer; margin-bottom:.45rem; }
+.hintbox { display:none; background:var(--gold-bg); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:.65rem .85rem; font-size:.83rem; color:var(--text2); }
+.hintbox.show { display:block; }
+
+/* ── MC ── */
+.mcopt.pending { border-color:var(--gold); background:var(--gold-bg); }
+.mcopts { display:flex; flex-direction:column; gap:.45rem; margin-bottom:.6rem; }
+.mcopt { display:flex; align-items:center; gap:.65rem; padding:.65rem .85rem; border:1.5px solid var(--border); border-radius:8px; cursor:pointer; font-size:.86rem; transition:all .13s; user-select:none; }
+.mcopt:hover:not(.dis) { border-color:var(--green); background:var(--green-bg); }
+.mcopt.dis   { cursor:default; pointer-events:none; }
+.mcopt.sc    { border-color:var(--ok);  background:var(--ok-bg);  color:var(--ok); }
+.mcopt.sw    { border-color:var(--bad); background:var(--bad-bg); color:var(--bad); }
+.mcopt.rc    { border-color:var(--ok);  background:var(--ok-bg); }
+.mcfb { display:none; padding:.65rem .85rem; border-radius:8px; font-size:.83rem; margin-top:.25rem; }
+.mcfb.show  { display:block; }
+.mcfb.fbok  { background:var(--ok-bg);  color:var(--ok); }
+.mcfb.fbbad { background:var(--bad-bg); color:var(--bad); }
+
+/* ── RESULT ── */
+.rpanel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.8rem; text-align:center; }
+.dlbtn { background:var(--green); color:#fff; border:none; border-radius:10px; padding:.8rem 1.8rem; font-size:.95rem; font-weight:600; cursor:pointer; transition:background .18s; }
+.dlbtn:hover { background:var(--green-dark); }
+.dlbtn:disabled { opacity:.6; cursor:wait; }
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcomeScreen">
+  <div class="wcard">
+    <div class="wlogos">
+      <div class="wlogsep"></div>
+    </div>
+    <div class="wtitle">Variables Indicadoras</div>
+    <div class="wcourse">Econometría · Facultad de Economía</div>
+    <label class="flabel" for="sName">Nombre completo</label>
+    <input class="finput" id="sName" type="text" placeholder="Tu nombre completo" autocomplete="name" oninput="checkForSavedSession()">
+    <label class="flabel" for="sGroup">Grupo</label>
+    <input class="finput" id="sGroup" type="text" placeholder="Ej. 3A" autocomplete="off" oninput="checkForSavedSession()">
+    <button class="sbtn" onclick="startLesson()">Comenzar →</button>
+    <div class="serr" id="startErr"></div>
+    <div id="restoreBar" style="display:none; margin-top:.8rem; background:#e8f5e9; border:1px solid var(--green); border-radius:8px; padding:.6rem .9rem; font-size:.84rem; color:#2d5a27;">
+      📂 Se encontró una sesión guardada para este estudiante.
+      <button onclick="restoreSession()" style="margin-left:.6rem; background:var(--green); color:#fff; border:none; border-radius:5px; padding:.25rem .7rem; cursor:pointer; font-size:.82rem;">Restaurar</button>
+      <button onclick="dismissRestore()" style="margin-left:.4rem; background:none; border:1px solid var(--green); border-radius:5px; padding:.25rem .7rem; cursor:pointer; font-size:.82rem; color:var(--green);">Ignorar</button>
+    </div>
+    <div class="wfoot" style="display:flex;justify-content:center;align-items:center;padding-top:.5rem">
+      <svg width="196" height="48" viewBox="0 0 140 34" xmlns="http://www.w3.org/2000/svg">
+        <style>.brand-text{font-family:'Crimson Pro',serif;font-weight:700;letter-spacing:.08em;fill:#4a7c3f;font-size:16px}.brand-line{stroke:#c9a84c;stroke-width:2}.brand-accent{fill:#c9a84c}</style>
+        <polyline points="4,24 10,18 16,20 22,10" fill="none" stroke="#4a7c3f" stroke-width="2"/>
+        <circle cx="22" cy="10" r="2.5" class="brand-accent"/>
+        <line x1="32" y1="6" x2="32" y2="28" class="brand-line"/>
+        <text x="42" y="22" class="brand-text">LIAXA</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- LESSON -->
+<div id="lessonScreen">
+  <div class="stickybar">
+    <div class="hlogos"></div>
+    <div class="hsep"></div>
+    <div class="htitle">Variables Indicadoras</div>
+    <div class="hsep"></div>
+    <div class="halexis">
+      <svg width="120" height="30" viewBox="0 0 140 34" xmlns="http://www.w3.org/2000/svg">
+        <style>.brand-text{font-family:'Crimson Pro',serif;font-weight:700;letter-spacing:.08em;fill:#4a7c3f;font-size:16px}.brand-line{stroke:#c9a84c;stroke-width:2}.brand-accent{fill:#c9a84c}</style>
+        <polyline points="4,24 10,18 16,20 22,10" fill="none" stroke="#4a7c3f" stroke-width="2"/>
+        <circle cx="22" cy="10" r="2.5" class="brand-accent"/>
+        <line x1="32" y1="6" x2="32" y2="28" class="brand-line"/>
+        <text x="42" y="22" class="brand-text">LIAXA</text>
+      </svg>
+    </div>
+    <div class="hchip" id="studentChip"></div>
+    <button class="tbtn" onclick="toggleTheme()" id="themeBtn">🌙</button>
+  </div>
+  <div class="progbar"><div class="progfill" id="progFill"></div></div>
+  <div class="lbody" id="lessonBody"></div>
+
+  <div class="section" id="s_results" style="display:none;">
+    <div class="sbody" style="text-align:center;padding:2rem 1rem;">
+      <button class="sbtn" id="dlBtn" onclick="generatePDF()" style="max-width:280px;margin:0 auto;">⬇ &nbsp;Descargar PDF de Resultados</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── STATE ── */
+var studentData = {};
+var problems    = [];
+
+/* ── SESSION PERSISTENCE ── */
+function lsKey() {
+  var n = (studentData.name  || '').trim();
+  var g = (studentData.group || '').trim();
+  return 'IV1__' + (n + '__' + g).replace(/\s+/g, '_');
+}
+function saveSession() {
+  if (!studentData.name) return;
+  var drawings = [], texts = [], photos = [];
+  problems.forEach(function(p, i) {
+    var dc = document.getElementById('dc' + i);
+    if (dc && dc.width) {
+      var blank = document.createElement('canvas');
+      blank.width = dc.width; blank.height = dc.height;
+      drawings.push(dc.toDataURL() === blank.toDataURL() ? null : dc.toDataURL('image/png'));
+    } else { drawings.push(null); }
+    var ta = document.getElementById('ta' + i);
+    texts.push(ta ? ta.value : '');
+    var pp = document.getElementById('pp' + i);
+    photos.push((pp && pp.src && pp.src.indexOf('data:') === 0) ? pp.src : null);
+  });
+  var state = {
+    name: studentData.name, group: studentData.group,
+    answeredCount: answeredCount, correctCount: correctCount,
+    choices: problems.map(function(p) { return p.studentChoice; }),
+    drawings: drawings, texts: texts, photos: photos
+  };
+  try { localStorage.setItem(lsKey(), JSON.stringify(state)); } catch(e) {}
+}
+function loadSession(name, group) {
+  var key = 'IV1__' + (name + '__' + group).replace(/\s+/g, '_');
+  try { var r = localStorage.getItem(key); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+}
+function restoreSession() {
+  var name  = document.getElementById('sName').value.trim();
+  var group = document.getElementById('sGroup').value.trim();
+  var saved = loadSession(name, group);
+  if (!saved) return;
+  document.getElementById('restoreBar').style.display = 'none';
+  studentData = { name: name, group: group };
+  answeredCount = 0; correctCount = 0;
+  buildLesson(seededRng(name + group));
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('lessonScreen').style.display  = 'block';
+  document.getElementById('studentChip').textContent = name + ' · ' + group;
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.section').forEach(function(s) { obs.observe(s); });
+  saved.choices.forEach(function(choice, idx) {
+    if (choice !== null && choice !== undefined) confirmMC(idx, choice);
+  });
+  setTimeout(function() {
+    if (saved.drawings) {
+      saved.drawings.forEach(function(dataUrl, i) {
+        if (!dataUrl) return;
+        var dc = document.getElementById('dc' + i);
+        if (!dc || !dc.width) return;
+        var img = new Image();
+        img.onload = function() {
+          var dpr = window.devicePixelRatio || 1;
+          dc.getContext('2d').drawImage(img, 0, 0, dc.width / dpr, dc.height / dpr);
+        };
+        img.src = dataUrl;
+      });
+    }
+    if (saved.texts) {
+      saved.texts.forEach(function(text, i) {
+        if (!text) return;
+        var ta = document.getElementById('ta' + i);
+        if (ta) ta.value = text;
+      });
+    }
+    if (saved.photos) {
+      saved.photos.forEach(function(dataUrl, i) {
+        if (!dataUrl) return;
+        var pp = document.getElementById('pp' + i);
+        if (!pp) return;
+        pp.src = dataUrl; pp.style.display = 'block';
+        var pz = document.getElementById('pz' + i);
+        if (pz) pz.style.opacity = '0.4';
+      });
+    }
+  }, 300);
+}
+function dismissRestore() {
+  document.getElementById('restoreBar').style.display = 'none';
+}
+function checkForSavedSession() {
+  var name  = document.getElementById('sName').value.trim();
+  var group = document.getElementById('sGroup').value.trim();
+  if (!name || !group) { document.getElementById('restoreBar').style.display = 'none'; return; }
+  var saved = loadSession(name, group);
+  var bar = document.getElementById('restoreBar');
+  bar.style.display = (saved && saved.choices && saved.choices.some(function(c){ return c !== null; })) ? 'block' : 'none';
+}
+var answeredCount = 0;
+var correctCount  = 0;
+
+/* ── THEME ── */
+function toggleTheme() {
+  var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+  try { localStorage.setItem('udec_theme', next); } catch(e) {}
+}
+(function() {
+  try {
+    var t = localStorage.getItem('udec_theme');
+    if (t) {
+      document.documentElement.setAttribute('data-theme', t);
+      document.addEventListener('DOMContentLoaded', function() {
+        var b = document.getElementById('themeBtn');
+        if (b) b.textContent = t === 'dark' ? '☀️' : '🌙';
+      });
+    }
+  } catch(e) {}
+})();
+
+/* ── SEEDED RNG ── */
+function seededRng(seed) {
+  var s = 0;
+  for (var i = 0; i < seed.length; i++) s = (Math.imul(31, s) + seed.charCodeAt(i)) | 0;
+  return function() {
+    s = (s + 0x9e3779b9) | 0;
+    var t = s ^ (s >>> 16);
+    t = Math.imul(t, 0x21f0aaad);
+    t ^= (t >>> 15);
+    t = Math.imul(t, 0x735a2d97);
+    return ((t ^ (t >>> 15)) >>> 0) / 4294967296;
+  };
+}
+function pick(arr, rng) { return arr[Math.floor(rng() * arr.length)]; }
+function shuffle(arr, rng) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(rng() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+/* ── START ── */
+function startLesson() {
+  var name  = document.getElementById('sName').value.trim();
+  var group = document.getElementById('sGroup').value.trim();
+  var err   = document.getElementById('startErr');
+  if (!name || !group) { err.textContent = 'Por favor ingresa tu nombre y grupo.'; return; }
+  err.textContent = '';
+  studentData = { name: name, group: group };
+  answeredCount = 0;
+  correctCount  = 0;
+  buildLesson(seededRng(name + group));
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('lessonScreen').style.display  = 'block';
+  document.getElementById('studentChip').textContent = name + ' · ' + group;
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) { if (e.isIntersecting) e.target.classList.add('vis'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.section').forEach(function(s) { obs.observe(s); });
+}
+
+/* ── CANVAS ── */
+function initCanvas(canvas) {
+  var dpr  = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  canvas.width  = rect.width  * dpr;
+  canvas.height = rect.height * dpr;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.strokeStyle = '#2d5a27';
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+  var drawing = false, lx = 0, ly = 0;
+  var tb = canvas.closest('.cvwrap').querySelector('.ctoolbar');
+  function getPos(e) {
+    var r = canvas.getBoundingClientRect();
+    var src = e.touches ? e.touches[0] : e;
+    return [src.clientX - r.left, src.clientY - r.top];
+  }
+  function onDown(e)  { e.preventDefault(); drawing = true; var p = getPos(e); lx = p[0]; ly = p[1]; }
+  function onMove(e)  { e.preventDefault(); if (!drawing) return; var p = getPos(e); ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(p[0],p[1]); ctx.stroke(); lx=p[0]; ly=p[1]; }
+  function onUp()     { drawing = false; saveSession(); }
+  canvas.addEventListener('mousedown',  onDown, { passive:false });
+  canvas.addEventListener('mousemove',  onMove, { passive:false });
+  canvas.addEventListener('mouseup',    onUp);
+  canvas.addEventListener('mouseleave', onUp);
+  canvas.addEventListener('touchstart', onDown, { passive:false });
+  canvas.addEventListener('touchmove',  onMove, { passive:false });
+  canvas.addEventListener('touchend',   onUp);
+  tb.querySelectorAll('.tbtn2').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      tb.querySelectorAll('.tbtn2').forEach(function(b) { b.classList.remove('on'); });
+      btn.classList.add('on');
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      if (btn.classList.contains('bpen'))    { ctx.lineWidth = 2; }
+      if (btn.classList.contains('bmarker')) { ctx.lineWidth = 10; ctx.globalAlpha = 0.45; }
+      if (btn.classList.contains('beraser')) { ctx.globalCompositeOperation = 'destination-out'; ctx.lineWidth = 20; }
+    });
+  });
+  tb.querySelectorAll('.cdot').forEach(function(dot) {
+    dot.addEventListener('click', function() {
+      tb.querySelectorAll('.cdot').forEach(function(d) { d.classList.remove('sel'); });
+      dot.classList.add('sel');
+      ctx.strokeStyle = dot.dataset.color;
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      tb.querySelectorAll('.tbtn2').forEach(function(b) { b.classList.remove('on'); });
+      tb.querySelector('.bpen').classList.add('on');
+    });
+  });
+  tb.querySelector('.clrbtn').addEventListener('click', function() {
+    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+  });
+}
+
+/* ── TABS ── */
+function switchTab(idx, panel, btn) {
+  var prefix = 'wp_' + idx + '_';
+  document.querySelectorAll('[id^="' + prefix + '"]').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById(prefix + panel).classList.add('active');
+  btn.closest('.wtabs').querySelectorAll('.wtab').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+/* ── PHOTO ── */
+function handlePhoto(idx, input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('pp' + idx);
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('pz' + idx).style.opacity = '0.4';
+    saveSession();
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+/* ── HINT ── */
+function toggleHint(idx) {
+  document.getElementById('hint' + idx).classList.toggle('show');
+}
+
+/* ── SHOW RESULTS ── */
+function showResults() {
+  var rb = document.getElementById('s_results');
+  if (!rb) return;
+  rb.style.display = 'block';
+  setTimeout(function() {
+    rb.classList.add('vis');
+    rb.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 50);
+}
+
+/* ── TWO-TAP MC HANDLER ── */
+function handleMC(probIdx, chosenIdx) {
+  var prob = problems[probIdx];
+  if (prob.studentChoice !== null) return;
+  var opts = document.querySelectorAll('#pc' + probIdx + ' .mcopt');
+  if (prob.pendingChoice === chosenIdx) {
+    prob.studentChoice = chosenIdx;
+    prob.pendingChoice = null;
+    var isOk = (chosenIdx === prob.correctIdx);
+    opts.forEach(function(o) { o.classList.add('dis'); o.classList.remove('pending'); });
+    opts.forEach(function(o, i) {
+      if (i === prob.correctIdx) o.classList.add('rc');
+      if (i === chosenIdx && isOk)  o.classList.add('sc');
+      if (i === chosenIdx && !isOk) o.classList.add('sw');
+    });
+    var fb = document.getElementById('fb' + probIdx);
+    fb.innerHTML = (isOk ? '<strong>✓ Correcto.</strong> ' : '<strong>✗ Incorrecto.</strong> ') + prob.explanation;
+    fb.className = 'mcfb show ' + (isOk ? 'fbok' : 'fbbad');
+    document.getElementById('pc' + probIdx).classList.add(isOk ? 'ok' : 'bad');
+    if (isOk) correctCount++;
+    answeredCount++;
+    document.getElementById('progFill').style.width = (answeredCount / problems.length * 100) + '%';
+    saveSession();
+    if (answeredCount === problems.length) setTimeout(showResults, 700);
+    return;
+  }
+  prob.pendingChoice = chosenIdx;
+  opts.forEach(function(o) { o.classList.remove('pending'); });
+  opts[chosenIdx].classList.add('pending');
+}
+
+function confirmMC(probIdx, chosenIdx) {
+  var prob = problems[probIdx];
+  if (prob.studentChoice !== null) return;
+  var opts = document.querySelectorAll('#pc' + probIdx + ' .mcopt');
+  prob.studentChoice = chosenIdx;
+  prob.pendingChoice = null;
+  var isOk = (chosenIdx === prob.correctIdx);
+  opts.forEach(function(o) { o.classList.add('dis'); o.classList.remove('pending'); });
+  opts.forEach(function(o, i) {
+    if (i === prob.correctIdx) o.classList.add('rc');
+    if (i === chosenIdx && isOk)  o.classList.add('sc');
+    if (i === chosenIdx && !isOk) o.classList.add('sw');
+  });
+  var fb = document.getElementById('fb' + probIdx);
+  fb.innerHTML = (isOk ? '<strong>✓ Correcto.</strong> ' : '<strong>✗ Incorrecto.</strong> ') + prob.explanation;
+  fb.className = 'mcfb show ' + (isOk ? 'fbok' : 'fbbad');
+  document.getElementById('pc' + probIdx).classList.add(isOk ? 'ok' : 'bad');
+  if (isOk) correctCount++;
+  answeredCount++;
+  document.getElementById('progFill').style.width = (answeredCount / problems.length * 100) + '%';
+  saveSession();
+  if (answeredCount === problems.length) setTimeout(showResults, 700);
+}
+
+/* ── INTERACTIVE TABLE WIDGET ── */
+function revealCell(td) {
+  var val = td.dataset.val;
+  td.textContent = val;
+  td.style.background = val === '1' ? 'var(--ok-bg)' : 'var(--surface2)';
+  td.style.color       = val === '1' ? 'var(--ok)'   : 'var(--text3)';
+  td.style.fontWeight  = val === '1' ? '700'          : '400';
+  td.style.cursor      = 'default';
+  td.onclick = null;
+}
+function checkCellInput(inp) {
+  var v = inp.value.trim();
+  if (v !== '0' && v !== '1') {
+    inp.style.borderColor = 'var(--bad)';
+    inp.style.color = 'var(--bad)';
+    return;
+  }
+  var correct = v === inp.dataset.val;
+  inp.style.borderColor = correct ? 'var(--ok)'  : 'var(--bad)';
+  inp.style.color       = correct ? 'var(--ok)'  : 'var(--bad)';
+  inp.style.background  = correct ? 'var(--ok-bg)' : 'var(--bad-bg)';
+  inp.readOnly = true;
+}
+function checkAllCells() {
+  var inputs = document.querySelectorAll('.icell-input');
+  var total = inputs.length, correct = 0, empty = 0;
+  inputs.forEach(function(inp) {
+    var v = inp.value.trim();
+    if (!v) { empty++; inp.style.borderColor = 'var(--gold)'; return; }
+    var ok = v === inp.dataset.val;
+    if (ok) correct++;
+    inp.style.borderColor = ok ? 'var(--ok)'  : 'var(--bad)';
+    inp.style.color       = ok ? 'var(--ok)'  : 'var(--bad)';
+    inp.style.background  = ok ? 'var(--ok-bg)' : 'var(--bad-bg)';
+    inp.readOnly = true;
+  });
+  var sc = document.getElementById('iwidget_score');
+  sc.style.display = 'block';
+  if (empty > 0) {
+    sc.textContent = 'Tienes ' + empty + ' celda(s) vacía(s). Llena todos los campos antes de verificar.';
+    sc.style.background = 'var(--gold-bg)'; sc.style.borderColor = 'var(--gold)'; sc.style.color = '#7a5c00';
+  } else {
+    sc.innerHTML = '<strong>' + correct + ' de ' + total + ' correctas.</strong> ' +
+      (correct === total ? '¡Excelente! Dominas la codificación dummy.' :
+       correct >= total*0.7 ? 'Muy bien. Revisa las celdas marcadas en rojo.' :
+       'Revisa la regla: D = 1 si la característica SÍ aplica, 0 si NO aplica.');
+    sc.style.background = correct === total ? 'var(--ok-bg)' : 'var(--bad-bg)';
+    sc.style.borderColor = correct === total ? 'var(--ok)' : 'var(--bad)';
+    sc.style.color = correct === total ? 'var(--ok)' : 'var(--bad)';
+  }
+}
+function revealAllCells() {
+  document.querySelectorAll('.icell').forEach(function(td) { revealCell(td); });
+  document.querySelectorAll('.icell-input').forEach(function(inp) {
+    var ok = inp.value.trim() === inp.dataset.val;
+    inp.value = inp.dataset.val;
+    inp.style.borderColor = 'var(--ok)';
+    inp.style.color       = inp.dataset.val === '1' ? 'var(--ok)'   : 'var(--text3)';
+    inp.style.background  = inp.dataset.val === '1' ? 'var(--ok-bg)' : 'var(--surface2)';
+    inp.readOnly = true;
+  });
+  var sc = document.getElementById('iwidget_score');
+  sc.style.display = 'block';
+  sc.style.background = 'var(--green-bg)'; sc.style.borderColor = 'var(--green)'; sc.style.color = 'var(--green-dark)';
+  sc.textContent = 'Respuestas reveladas. Compara con tus entradas y revisa las que tenías incorrectas.';
+}
+
+/* ── BUILD ONE CARD ── */
+function buildOneCard(prob, i) {
+  var opts = prob.options.map(function(opt, oi) {
+    return '<div class="mcopt" onclick="handleMC(' + i + ',' + oi + ')">' + opt + '</div>';
+  }).join('');
+  var card = document.createElement('div');
+  card.className = 'pcrd';
+  card.id = 'pc' + i;
+  card.innerHTML =
+    '<div class="phdr"><div class="pnum">' + (i+1) + '</div><div class="ptitle">' + prob.title + '</div></div>' +
+    '<div class="pbody">' +
+      '<div class="pstmt">' + prob.questionText + (prob.fn ? '<span class="pfn">' + prob.fn + '</span>' : '') + '</div>' +
+      '<div style="margin-bottom:.85rem">' +
+        '<div class="wtabs">' +
+          '<button class="wtab active" onclick="switchTab(' + i + ',\'draw\',this)">✏️ Dibujar</button>' +
+          '<button class="wtab"        onclick="switchTab(' + i + ',\'type\',this)">⌨️ Escribir</button>' +
+          '<button class="wtab"        onclick="switchTab(' + i + ',\'photo\',this)">📷 Foto</button>' +
+        '</div>' +
+        '<div class="wpanel active" id="wp_' + i + '_draw">' +
+          '<div class="cvwrap">' +
+            '<canvas class="dcanvas" id="dc' + i + '"></canvas>' +
+            '<div class="ctoolbar">' +
+              '<button class="tbtn2 bpen on">🖊 Lápiz</button>' +
+              '<button class="tbtn2 bmarker">🖌 Marcador</button>' +
+              '<button class="tbtn2 beraser">⬜ Borrar</button>' +
+              '<div class="cdot sel" data-color="#2d5a27" style="background:#2d5a27"></div>' +
+              '<div class="cdot"     data-color="#1a1a16" style="background:#1a1a16"></div>' +
+              '<div class="cdot"     data-color="#8b2500" style="background:#8b2500"></div>' +
+              '<div class="cdot"     data-color="#1d4e89" style="background:#1d4e89"></div>' +
+              '<button class="clrbtn">🗑 Limpiar</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="wpanel" id="wp_' + i + '_type">' +
+          '<textarea class="wtextarea" id="ta' + i + '" placeholder="Muestra tu procedimiento aquí..." oninput="saveSession()"></textarea>' +
+        '</div>' +
+        '<div class="wpanel" id="wp_' + i + '_photo">' +
+          '<div class="pzone" id="pz' + i + '">' +
+            '<input type="file" accept="image/*" onchange="handlePhoto(' + i + ',this)">' +
+            '<div class="pzicon">📸</div>' +
+            '<div class="pztxt">Toca para <strong>subir una imagen</strong> o tomar foto</div>' +
+          '</div>' +
+          '<img class="ppreview" id="pp' + i + '" alt="trabajo del estudiante">' +
+        '</div>' +
+      '</div>' +
+      '<button class="hintbtn" onclick="toggleHint(' + i + ')">💡 Ver pista</button>' +
+      '<div class="hintbox" id="hint' + i + '">' + (prob.hint||'') + '</div>' +
+      '<div style="margin-top:.7rem">' +
+        '<div style="font-family:monospace;font-size:.65rem;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:.5rem">Selecciona tu respuesta:</div>' +
+        '<div class="mcopts">' + opts + '</div>' +
+        '<div class="mcfb" id="fb' + i + '"></div>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('lessonBody').appendChild(card);
+  setTimeout(function() {
+    var c = document.getElementById('dc' + i);
+    if (c) initCanvas(c);
+  }, 80);
+}
+
+/* ── PDF ── */
+async function generatePDF() {
+  var btn = document.getElementById('dlBtn');
+  btn.textContent = 'Generando PDF…';
+  btn.disabled = true;
+  var jspdf   = window.jspdf;
+  var doc     = new jspdf.jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+  var PW      = 215.9;
+  var M       = 18;
+  var TW      = PW - M * 2;
+  var PH      = doc.internal.pageSize.height;
+  var name    = studentData.name;
+  var group   = studentData.group;
+  var total   = problems.length;
+  var pct     = Math.round(correctCount / total * 100);
+  var dateStr = new Date().toLocaleString('es-MX', { dateStyle:'long', timeStyle:'short' });
+  var raw = name + '|' + group + '|' + correctCount + '|' + total + '|' + new Date().toDateString();
+  var h = 0;
+  for (var ci = 0; ci < raw.length; ci++) h = (Math.imul(31, h) + raw.charCodeAt(ci)) | 0;
+  var code = Math.abs(h).toString(36).toUpperCase().slice(0, 8);
+
+  // COVER
+  doc.setFillColor(201,168,76); doc.rect(0,0,PW,4,'F');
+  doc.setFillColor(26,26,22);   doc.rect(0,4,PW,56,'F');
+  doc.setTextColor(201,168,76); doc.setFontSize(7); doc.setFont('helvetica','bold');
+  doc.text('ECONOMETRÍA  ·  VARIABLES INDICADORAS', M, 17);
+  doc.setTextColor(180,170,150); doc.setFont('helvetica','normal');
+  doc.text('UNIVERSIDAD DE COLIMA  ·  LIAXA', M, 24);
+  doc.setTextColor(232,228,216); doc.setFontSize(19); doc.setFont('helvetica','bold');
+  doc.text('Variables Indicadoras', M, 41);
+  doc.setTextColor(150,140,120); doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('Econometría  ·  ' + dateStr, M, 52);
+  doc.setFillColor(201,168,76); doc.rect(0,60,PW,2,'F');
+
+  doc.setFillColor(240,237,230); doc.roundedRect(M,68,TW,32,3,3,'F');
+  doc.setTextColor(130,120,100); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+  doc.text('ESTUDIANTE', M+4, 77); doc.text('GRUPO', 130, 77);
+  doc.setTextColor(26,26,22); doc.setFontSize(10); doc.setFont('helvetica','bold');
+  doc.text(name, M+4, 86); doc.text(group, 130, 86);
+  doc.setTextColor(130,120,100); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+  doc.text('CÓDIGO DE VERIFICACIÓN', M+4, 95);
+  doc.setTextColor(74,124,63); doc.setFontSize(9); doc.setFont('courier','bold');
+  doc.text(code, M+4, 102);
+
+  var sc = pct>=70?[45,106,79]:pct>=50?[201,168,76]:[139,37,0];
+  doc.setFillColor(255,255,255); doc.roundedRect(M,110,TW,48,4,4,'F');
+  doc.setDrawColor(sc[0],sc[1],sc[2]); doc.setLineWidth(0.8);
+  doc.roundedRect(M,110,TW,48,4,4,'S');
+  doc.setTextColor(sc[0],sc[1],sc[2]); doc.setFontSize(42); doc.setFont('helvetica','bold');
+  doc.text(pct+'%', PW/2, 143, {align:'center'});
+  doc.setTextColor(130,120,100); doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(correctCount+' correctas de '+total+' preguntas', PW/2, 153, {align:'center'});
+
+  doc.setFillColor(74,124,63); doc.setTextColor(255,255,255);
+  doc.setFontSize(7); doc.setFont('helvetica','bold');
+  doc.rect(M,166,TW,8,'F'); doc.text('RESUMEN DE RESPUESTAS', M+4, 172);
+  var sy = 178;
+  problems.forEach(function(prob, i) {
+    var ok = document.getElementById('pc'+i).classList.contains('ok');
+    doc.setFillColor(ok?232:255, ok?240:232, ok?232:228);
+    doc.roundedRect(M,sy,TW,10,2,2,'F');
+    doc.setFillColor(ok?45:139, ok?106:37, ok?79:0);
+    doc.circle(M+6, sy+5, 2.5, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.text(ok?'✓':'✗', M+4.5, sy+6.5);
+    doc.setTextColor(26,26,22); doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.text('Pregunta '+(i+1)+': '+prob.title, M+12, sy+6.5);
+    doc.setTextColor(ok?45:139, ok?106:37, ok?79:0);
+    doc.text(ok?'Correcto':'Incorrecto', PW-M-24, sy+6.5);
+    sy += 12;
+  });
+
+  for (var i = 0; i < problems.length; i++) {
+    var prob = problems[i];
+    doc.addPage();
+    var wy = 0;
+    doc.setFillColor(26,26,22); doc.rect(0,0,PW,20,'F');
+    doc.setFillColor(201,168,76); doc.rect(0,0,PW,3,'F');
+    doc.setTextColor(201,168,76); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('ECONOMETRÍA  ·  VARIABLES INDICADORAS', M, 10);
+    doc.setTextColor(232,228,216); doc.setFontSize(10.5); doc.setFont('helvetica','bold');
+    doc.text('Pregunta '+(i+1)+' de '+total+'  —  '+prob.title, M, 17);
+    wy = 25;
+
+    var qRaw   = (prob.questionText||'').replace(/<[^>]+>/g,'');
+    var qFn    = (prob.fn||'').replace(/<[^>]+>/g,'');
+    doc.setFontSize(8.5);
+    var qLines = doc.splitTextToSize(qRaw, TW-10);
+    doc.setFontSize(7.5);
+    var fnLines = doc.splitTextToSize(qFn, TW-10);
+    var qBoxH = 8 + qLines.length*5 + (qFn ? fnLines.length*4.5+4 : 0) + 3;
+    doc.setFillColor(240,237,230); doc.roundedRect(M,wy,TW,qBoxH,2,2,'F');
+    doc.setTextColor(74,124,63); doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+    doc.text('PREGUNTA', M+4, wy+6);
+    doc.setTextColor(26,26,22); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    var qy = wy+12;
+    qLines.forEach(function(ln,li){ doc.text(ln, M+4, qy+li*5); });
+    if (qFn) {
+      var fny = qy + qLines.length*5 + 2;
+      doc.setTextColor(45,90,35); doc.setFontSize(7.5); doc.setFont('courier','bold');
+      fnLines.forEach(function(ln,li){ doc.text(ln, M+4, fny+li*4.5); });
+    }
+    wy += qBoxH + 4;
+
+    var isOk   = document.getElementById('pc'+i).classList.contains('ok');
+    var chosen = (prob.studentChoice != null) ? (prob.options[prob.studentChoice]||'—') : '—';
+    var corr   = prob.options[prob.correctIdx]||'';
+    var expRaw = (prob.explanation||'').replace(/<[^>]+>/g,'');
+    doc.setFontSize(8.5); var chLines = doc.splitTextToSize('Estudiante: '+chosen, TW-18);
+    doc.setFontSize(8);   var coLines = doc.splitTextToSize('Correcta: '+corr,     TW-18);
+    doc.setFontSize(7.5); var exLines = doc.splitTextToSize('Solución: '+expRaw,   TW-18).slice(0,4);
+    var ansBoxH = 8 + chLines.length*5.5 + coLines.length*5 + exLines.length*5 + 6;
+    doc.setFillColor(isOk?232:255, isOk?240:232, isOk?232:228);
+    doc.roundedRect(M,wy,TW,ansBoxH,2,2,'F');
+    doc.setFillColor(isOk?45:139, isOk?106:37, isOk?79:0);
+    doc.circle(M+7, wy+8, 3.5, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text(isOk?'✓':'✗', M+5.2, wy+10.5);
+    var ay = wy+7;
+    doc.setTextColor(26,26,22); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+    chLines.forEach(function(ln,li){ doc.text(ln, M+14, ay+li*5.5); });
+    ay += chLines.length*5.5 + 3;
+    doc.setTextColor(45,106,79); doc.setFontSize(8); doc.setFont('helvetica','normal');
+    coLines.forEach(function(ln,li){ doc.text(ln, M+14, ay+li*5); });
+    ay += coLines.length*5 + 3;
+    doc.setTextColor(90,85,80); doc.setFontSize(7.5);
+    exLines.forEach(function(ln,li){ doc.text(ln, M+14, ay+li*5); });
+    wy += ansBoxH + 5;
+
+    doc.setFillColor(74,124,63); doc.setTextColor(255,255,255);
+    doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.rect(M,wy,TW,8,'F'); doc.text('TRABAJO DEL ESTUDIANTE', M+4, wy+5.5);
+    wy += 11;
+
+    var dc = document.getElementById('dc'+i);
+    if (dc) {
+      try {
+        var imgD = dc.toDataURL('image/png');
+        var ar   = dc.height / dc.width;
+        var iw   = TW;
+        var ih   = Math.min(iw * ar, 68);
+        doc.addImage(imgD, 'PNG', M, wy, iw, ih);
+        wy += ih + 4;
+      } catch(e) {}
+    }
+    var ta = document.getElementById('ta'+i);
+    if (ta && ta.value.trim()) {
+      if (wy > PH-30) { doc.addPage(); wy = 20; }
+      doc.setTextColor(26,26,22); doc.setFontSize(8); doc.setFont('courier','normal');
+      var taLines = doc.splitTextToSize(ta.value, TW);
+      taLines.slice(0,16).forEach(function(ln) {
+        if (wy > PH-15) { doc.addPage(); wy = 20; }
+        doc.text(ln, M, wy); wy += 5;
+      });
+      wy += 2;
+    }
+    var pp = document.getElementById('pp'+i);
+    if (pp && pp.src && pp.src.indexOf('data:') === 0) {
+      if (wy > PH-55) { doc.addPage(); wy = 20; }
+      try { doc.addImage(pp.src, 'JPEG', M, wy, TW, 68); wy += 72; } catch(e) {}
+    }
+  }
+
+  var pages = doc.internal.getNumberOfPages();
+  for (var p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    doc.setFillColor(201,168,76); doc.rect(0, PH-3, PW, 3, 'F');
+    doc.setTextColor(130,120,100); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.text(name+'  ·  '+group+'  ·  Código: '+code+'  ·  Pág. '+p+'/'+pages,
+      PW/2, PH-5, {align:'center'});
+  }
+  doc.save('VariablesIndicadoras_' + name.replace(/\s+/g,'_') + '_' + group.replace(/\s+/g,'_') + '.pdf');
+  btn.innerHTML = '⬇ &nbsp;Descargar PDF de Resultados';
+  btn.disabled  = false;
+}
+
+/* ================================================
+   buildLesson — INDICATOR VARIABLES GUIDE
+   ================================================ */
+function buildLesson(rng) {
+  problems = [];
+  var lb = document.getElementById('lessonBody');
+  lb.innerHTML = '';
+
+  // ──────────────────────────────────────────────
+  // SECTION 1 — ¿Qué es una variable indicadora?
+  // ──────────────────────────────────────────────
+  var s1 = document.createElement('div');
+  s1.className = 'section';
+  s1.innerHTML =
+    '<div class="stag">Concepto 1 de 4</div>' +
+    '<h2>¿Qué es una variable indicadora?</h2>' +
+    '<p>En econometría frecuentemente queremos incluir en un modelo características <strong>cualitativas</strong>: si una persona tiene título universitario o no, si vive en zona urbana o rural, si un trimestre es de temporada alta o no. Estas características no son números, pero las podemos convertir en números con una codificación muy simple.</p>' +
+    '<p>Una <strong>variable indicadora</strong> (también llamada <em>variable dummy</em>) toma únicamente dos valores:</p>' +
+    '<div class="rules-grid">' +
+      '<div class="rcard"><div class="rname">Valor 1</div><div class="rform">D = 1</div><div class="rnote">La característica SÍ está presente en esa observación.</div></div>' +
+      '<div class="rcard"><div class="rname">Valor 0</div><div class="rform">D = 0</div><div class="rnote">La característica NO está presente. Es la categoría de referencia.</div></div>' +
+    '</div>' +
+    '<div class="callout"><p><strong>Regla clave:</strong> Si una variable cualitativa tiene <em>k</em> categorías, se necesitan exactamente <em>k − 1</em> variables indicadoras en el modelo. Si incluyes <em>k</em>, caes en la "trampa de la variable dummy" (multicolinealidad perfecta).</p></div>' +
+    '<p><strong>Ejemplo guiado:</strong> Tienes datos sobre salarios de trabajadores. Quieres controlar si el trabajador es hombre o mujer. La variable cualitativa "género" tiene 2 categorías, así que necesitas solo 1 variable indicadora. Defines:</p>' +
+    '<div class="eqbox"><div class="eq-label">Codificación</div>D_mujer = 1 si el trabajador es mujer, 0 si es hombre</div>' +
+    '<p>La categoría "hombre" queda implícita como categoría de referencia (cuando D_mujer = 0, sabemos que es hombre).</p>';
+  lb.appendChild(s1);
+
+  // PROBLEM 1 — Identifying dummy coding
+  var cities = [
+    { feat: 'Si la empresa está en zona industrial', cat: 'Ubicación (industrial / no industrial)', correct: 'D_industrial = 1 si zona industrial, 0 si otra zona', wrong1: 'D_industrial = 1 si zona industrial, D_no_industrial = 1 si otra zona', wrong2: 'D_industrial = 2 si zona industrial, 1 si otra zona', wrong3: 'Se necesitan 2 dummies para 2 categorías' },
+    { feat: 'Si el empleado trabaja tiempo completo', cat: 'Jornada (completa / parcial)', correct: 'D_completo = 1 si tiempo completo, 0 si tiempo parcial', wrong1: 'D_completo = 1 y D_parcial = 1, ambas en el modelo', wrong2: 'D_completo toma valores 0, 1, 2', wrong3: 'No se puede incluir porque es cualitativa' },
+    { feat: 'Si el producto es de exportación', cat: 'Destino (exportación / mercado local)', correct: 'D_exportacion = 1 si es de exportación, 0 si es local', wrong1: 'D_exportacion = 1 y D_local = 1, ambas en el modelo', wrong2: 'D_exportacion toma el valor del porcentaje exportado', wrong3: 'Se necesitan tantas dummies como exportaciones' }
+  ];
+  var c1 = cities[Math.floor(rng() * cities.length)];
+  var opts1raw = [c1.correct, c1.wrong1, c1.wrong2, c1.wrong3];
+  var s1opts = shuffle(opts1raw, rng);
+  problems.push({
+    title: 'Codificación correcta',
+    questionText: 'Deseas incluir la siguiente característica en tu modelo de regresión: <strong>' + c1.feat + '</strong>. La variable cualitativa es: ' + c1.cat + '. ¿Cuál es la codificación correcta?',
+    fn: '',
+    options: s1opts,
+    correctIdx: s1opts.indexOf(c1.correct),
+    studentChoice: null, pendingChoice: null,
+    hint: 'Recuerda: con k = 2 categorías necesitas k − 1 = 1 sola variable indicadora. La categoría que queda con D = 0 es la referencia.',
+    explanation: 'Con dos categorías únicamente se necesita una variable indicadora. Una categoría recibe el valor 1 y la otra queda implícita con 0. Incluir dos dummies generaría multicolinealidad perfecta.'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+
+  // ──────────────────────────────────────────────
+  // SECTION 2 — Leer una tabla codificada
+  // ──────────────────────────────────────────────
+  var s2 = document.createElement('div');
+  s2.className = 'section';
+  // Generate a small random table: 6 workers, random wages, sex and education
+  var baseWage = 8 + Math.floor(rng() * 6);   // 8-13 thousands
+  var wageStep = 2 + Math.floor(rng() * 3);    // 2-4 thousands
+  var rows = [];
+  var names = ['Ana','Carlos','Sofía','Miguel','Valentina','Jorge'];
+  var isMujer = [1,0,1,0,1,0];
+  var hasEduc = [1,1,0,1,0,0];
+  for (var ri = 0; ri < 6; ri++) {
+    var w = baseWage + isMujer[ri]*wageStep + hasEduc[ri]*(wageStep+1) + Math.floor(rng()*3);
+    rows.push({ name: names[ri], wage: w, mujer: isMujer[ri], educ: hasEduc[ri] });
+  }
+  var tableRows = rows.map(function(r) {
+    return '<tr><td>' + r.name + '</td>' +
+      '<td class="num">' + r.wage + '</td>' +
+      '<td class="' + (r.mujer ? 'one' : 'zero') + '">' + r.mujer + '</td>' +
+      '<td class="' + (r.educ  ? 'one' : 'zero') + '">' + r.educ  + '</td></tr>';
+  }).join('');
+
+  s2.innerHTML =
+    '<div class="stag">Concepto 2 de 4</div>' +
+    '<h2>Leer una tabla con variables indicadoras</h2>' +
+    '<p>Una vez codificada la información, los datos se ven como cualquier otra tabla numérica. La clave está en recordar qué significa cada columna 0/1. Observa esta tabla con datos de salarios (en miles de pesos):</p>' +
+    '<table class="dtable">' +
+      '<thead><tr><th>Nombre</th><th>Salario (miles $)</th><th>D_mujer</th><th>D_universitario</th></tr></thead>' +
+      '<tbody>' + tableRows + '</tbody>' +
+    '</table>' +
+    '<div class="callout">' +
+      '<p><strong>Cómo leer la tabla:</strong> Cada fila es una observación (un trabajador). Una celda con <strong style="color:var(--green-dark)">1</strong> significa que esa característica SÍ aplica a esa persona. Un <strong style="color:var(--text3)">0</strong> significa que NO aplica y que pertenece a la categoría de referencia (hombre / sin título universitario).</p>' +
+    '</div>' +
+    '<p><strong>Ejemplo guiado:</strong> Para el trabajador "Carlos": D_mujer = 0 (es hombre), D_universitario = 1 (tiene título). Para "Valentina": D_mujer = 1 (es mujer), D_universitario = 0 (sin título).</p>';
+  lb.appendChild(s2);
+
+  // PROBLEM 2 — Reading the table
+  // Pick a random worker and ask about them
+  var pRow = rows[Math.floor(rng() * rows.length)];
+  var genderStr = pRow.mujer === 1 ? 'mujer' : 'hombre';
+  var educStr   = pRow.educ  === 1 ? 'con título universitario' : 'sin título universitario';
+  var correctDesc = genderStr + ', ' + educStr;
+  var wrong2a = (pRow.mujer === 1 ? 'hombre' : 'mujer') + ', ' + educStr;
+  var wrong2b = genderStr + ', ' + (pRow.educ === 1 ? 'sin título universitario' : 'con título universitario');
+  var wrong2c = (pRow.mujer === 1 ? 'hombre' : 'mujer') + ', ' + (pRow.educ === 1 ? 'sin título universitario' : 'con título universitario');
+  var opts2raw = [correctDesc, wrong2a, wrong2b, wrong2c];
+  var s2opts = shuffle(opts2raw, rng);
+  problems.push({
+    title: 'Lectura de tabla dummy',
+    questionText: 'Según la tabla anterior, el trabajador <strong>' + pRow.name + '</strong> tiene D_mujer = ' + pRow.mujer + ' y D_universitario = ' + pRow.educ + '. ¿Cuál es la descripción correcta de este trabajador?',
+    fn: '',
+    options: s2opts,
+    correctIdx: s2opts.indexOf(correctDesc),
+    studentChoice: null, pendingChoice: null,
+    hint: 'Recuerda: D = 1 significa que la característica SÍ aplica. D = 0 significa que NO aplica (categoría de referencia: hombre, sin título).',
+    explanation: 'D_mujer = ' + pRow.mujer + ' indica que es ' + genderStr + '. D_universitario = ' + pRow.educ + ' indica que está ' + educStr + '. La codificación 0 siempre corresponde a la categoría de referencia.'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+
+  // ── INTERACTIVE WIDGET — Code the table yourself ──
+  var iNames   = ['Ramírez','Flores','Torres','Guzmán','Reyes','Morales','Vega','Castro'];
+  var iSector  = [1,0,1,0,1,1,0,0];   // 1=comercio, 0=servicios (referencia)
+  var iJornada = [1,1,0,0,1,0,1,0];   // 1=completa, 0=parcial (referencia)
+  var iSindic  = [0,1,1,0,0,1,0,1];   // 1=sindicalizado, 0=no sindicalizado
+  var iDesc = [
+    'Trabaja en el sector comercio, jornada completa, no sindicalizado.',
+    'Trabaja en el sector servicios, jornada completa, sindicalizado.',
+    'Trabaja en el sector comercio, jornada parcial, sindicalizado.',
+    'Trabaja en el sector servicios, jornada parcial, no sindicalizado.',
+    'Trabaja en el sector comercio, jornada completa, no sindicalizado.',
+    'Trabaja en el sector comercio, jornada parcial, sindicalizado.',
+    'Trabaja en el sector servicios, jornada completa, no sindicalizado.',
+    'Trabaja en el sector servicios, jornada parcial, sindicalizado.'
+  ];
+  // Rows 0,1,4 are "demo" (click to reveal). Rows 2,3,5,6,7 student fills in.
+  var demoRows = [0,1,4];
+
+  var iWidget = document.createElement('div');
+  iWidget.className = 'section';
+  iWidget.id = 'iwidget';
+
+  var iTableRows = '';
+  for (var wi = 0; wi < 8; wi++) {
+    var isDemo = demoRows.indexOf(wi) !== -1;
+    var secVal = iSector[wi], jorVal = iJornada[wi], sinVal = iSindic[wi];
+    if (isDemo) {
+      iTableRows +=
+        '<tr id="irow_' + wi + '">' +
+        '<td><strong>' + iNames[wi] + '</strong><br><span style="font-size:.78rem;color:var(--text3)">' + iDesc[wi] + '</span></td>' +
+        '<td class="icell" data-val="' + secVal + '" data-ri="' + wi + '" data-ci="0" onclick="revealCell(this)" style="cursor:pointer;background:var(--gold-bg);color:var(--gold);font-weight:600;text-align:center;border-radius:4px;font-size:.75rem;padding:.4rem .3rem">Mostrar</td>' +
+        '<td class="icell" data-val="' + jorVal + '" data-ri="' + wi + '" data-ci="1" onclick="revealCell(this)" style="cursor:pointer;background:var(--gold-bg);color:var(--gold);font-weight:600;text-align:center;border-radius:4px;font-size:.75rem;padding:.4rem .3rem">Mostrar</td>' +
+        '<td class="icell" data-val="' + sinVal + '" data-ri="' + wi + '" data-ci="2" onclick="revealCell(this)" style="cursor:pointer;background:var(--gold-bg);color:var(--gold);font-weight:600;text-align:center;border-radius:4px;font-size:.75rem;padding:.4rem .3rem">Mostrar</td>' +
+        '</tr>';
+    } else {
+      iTableRows +=
+        '<tr id="irow_' + wi + '">' +
+        '<td><strong>' + iNames[wi] + '</strong><br><span style="font-size:.78rem;color:var(--text3)">' + iDesc[wi] + '</span></td>' +
+        '<td style="text-align:center"><input class="icell-input" data-val="' + secVal + '" data-ri="' + wi + '" data-ci="0" type="text" maxlength="1" placeholder="" oninput="checkCellInput(this)" style="width:38px;height:32px;text-align:center;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-weight:600;background:var(--surface2);color:var(--text)"></td>' +
+        '<td style="text-align:center"><input class="icell-input" data-val="' + jorVal + '" data-ri="' + wi + '" data-ci="1" type="text" maxlength="1" placeholder="" oninput="checkCellInput(this)" style="width:38px;height:32px;text-align:center;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-weight:600;background:var(--surface2);color:var(--text)"></td>' +
+        '<td style="text-align:center"><input class="icell-input" data-val="' + sinVal + '" data-ri="' + wi + '" data-ci="2" type="text" maxlength="1" placeholder="" oninput="checkCellInput(this)" style="width:38px;height:32px;text-align:center;border:1.5px solid var(--border);border-radius:6px;font-size:.9rem;font-weight:600;background:var(--surface2);color:var(--text)"></td>' +
+        '</tr>';
+    }
+  }
+
+  iWidget.innerHTML =
+    '<div class="stag">Actividad interactiva</div>' +
+    '<h2>Codifica la tabla tú mismo</h2>' +
+    '<p>Lee la descripción de cada trabajador y llena las columnas de variables indicadoras con <strong>0</strong> o <strong>1</strong>. Las tres primeras filas tienen el botón <strong style="color:var(--gold)">Mostrar</strong> — tócalo para ver la respuesta y verificar tu lógica antes de continuar con las demás.</p>' +
+    '<div class="rules-grid" style="margin-bottom:1rem">' +
+      '<div class="rcard"><div class="rname">D_comercio</div><div class="rform">1 = sector comercio</div><div class="rnote">Referencia: sector servicios → 0</div></div>' +
+      '<div class="rcard"><div class="rname">D_completo</div><div class="rform">1 = jornada completa</div><div class="rnote">Referencia: jornada parcial → 0</div></div>' +
+      '<div class="rcard"><div class="rname">D_sindic</div><div class="rform">1 = sindicalizado</div><div class="rnote">Referencia: no sindicalizado → 0</div></div>' +
+    '</div>' +
+    '<div style="overflow-x:auto">' +
+    '<table class="dtable" id="itable">' +
+      '<thead><tr><th>Trabajador</th><th>D_comercio</th><th>D_completo</th><th>D_sindic</th></tr></thead>' +
+      '<tbody>' + iTableRows + '</tbody>' +
+    '</table>' +
+    '</div>' +
+    '<div id="iwidget_score" style="display:none;margin-top:.9rem;background:var(--green-bg);border-left:4px solid var(--green);border-radius:0 10px 10px 0;padding:.85rem 1.1rem;font-size:.88rem;color:var(--green-dark)"></div>' +
+    '<div style="margin-top:.7rem;display:flex;gap:.6rem;flex-wrap:wrap">' +
+      '<button onclick="checkAllCells()" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:.55rem 1.2rem;font-size:.85rem;font-weight:600;cursor:pointer">Verificar mis respuestas</button>' +
+      '<button onclick="revealAllCells()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:.55rem 1.2rem;font-size:.85rem;color:var(--text2);cursor:pointer">Mostrar todas las respuestas</button>' +
+    '</div>';
+  lb.appendChild(iWidget);
+
+  // ──────────────────────────────────────────────
+  // SECTION 3 — Interpretar coeficientes
+  // ──────────────────────────────────────────────
+  // Generate random but plausible regression coefficients
+  var beta0 = 10 + Math.floor(rng() * 8);           // intercept 10-17
+  var betaMujer = -(1 + Math.floor(rng() * 5));      // negative gap -1 to -5
+  var betaUniv  = 3 + Math.floor(rng() * 5);         // positive premium 3-7
+  var betaExp   = parseFloat((0.3 + rng() * 0.5).toFixed(1)); // 0.3-0.8
+  var egExp  = 3 + Math.floor(rng() * 6);   // 3-8 years for guided example
+  var egExp2 = 2 + Math.floor(rng() * 7);   // 2-8 years for Verifica aquí
+
+  var s3 = document.createElement('div');
+  s3.className = 'section';
+  s3.innerHTML =
+    '<div class="stag">Concepto 3 de 4</div>' +
+    '<h2>Interpretar coeficientes de variables indicadoras</h2>' +
+    '<p>Cuando estimamos una regresión con variables indicadoras, cada coeficiente tiene una interpretación precisa: mide la <strong>diferencia promedio</strong> en la variable dependiente entre la categoría indicada y la categoría de referencia, <em>manteniendo todo lo demás constante</em>.</p>' +
+    '<div class="eqbox">' +
+      '<div class="eq-label">Modelo estimado</div>' +
+      'Salario (en miles $) = ' + beta0 + ' + (' + betaMujer + ')·D_mujer + ' + betaUniv + '·D_univ + ' + betaExp + '·Experiencia' +
+    '</div>' +
+    '<div class="coef-grid">' +
+      '<div class="coef-card"><div class="coef-name">β₀ = ' + beta0 + '</div><div class="coef-val">' + beta0 + ' miles $</div><div class="coef-note">Salario base esperado: hombre, sin título, con 0 años de experiencia.</div></div>' +
+      '<div class="coef-card"><div class="coef-name">β_mujer = ' + betaMujer + '</div><div class="coef-val">' + betaMujer + ' miles $</div><div class="coef-note">Las mujeres ganan en promedio ' + Math.abs(betaMujer) + ' mil pesos <em>menos</em> que los hombres, ceteris paribus.</div></div>' +
+      '<div class="coef-card"><div class="coef-name">β_univ = ' + betaUniv + '</div><div class="coef-val">+' + betaUniv + ' miles $</div><div class="coef-note">Los trabajadores con título ganan en promedio ' + betaUniv + ' mil pesos <em>más</em> que sin título, ceteris paribus.</div></div>' +
+      '<div class="coef-card"><div class="coef-name">β_exp = ' + betaExp + '</div><div class="coef-val">+' + betaExp + ' miles $ / año</div><div class="coef-note">Cada año adicional de experiencia incrementa el salario en ' + betaExp + ' mil pesos, ceteris paribus.</div></div>' +
+    '</div>' +
+    '<div class="callout"><p><strong>Atención al signo:</strong> El coeficiente de una dummy puede ser positivo o negativo. Un coeficiente negativo significa que esa categoría está asociada a un valor <em>menor</em> que la categoría de referencia, en promedio.</p></div>' +
+    '<p><strong>Ejemplo guiado:</strong> ¿Cuánto gana en promedio un <em>hombre sin título</em> con <strong>' + egExp + ' años</strong> de experiencia? Sustituyendo D_mujer = 0, D_univ = 0, Experiencia = ' + egExp + ':</p>' +
+    '<div class="eqbox" style="font-size:.88rem;text-align:left;line-height:2">' +
+      'Salario = ' + beta0 + ' + (' + betaMujer + ')·<strong>0</strong> + ' + betaUniv + '·<strong>0</strong> + ' + betaExp + '·<strong>' + egExp + '</strong><br>' +
+      'Salario = ' + beta0 + ' + 0 + 0 + ' + parseFloat((betaExp * egExp).toFixed(1)) + '<br>' +
+      '<strong>Salario = ' + parseFloat((beta0 + betaExp * egExp).toFixed(1)) + ' miles $</strong>' +
+    '</div>' +
+    '<p style="margin-top:.6rem">Ahora inténtalo tú. Calcula el salario esperado de una <strong>mujer con título</strong> y <strong>' + egExp2 + ' años</strong> de experiencia. Escribe tu cálculo y resultado:</p>' +
+    '<div style="background:var(--gold-bg);border:1.5px solid var(--gold);border-radius:10px;padding:1rem 1.2rem;margin:.6rem 0">' +
+      '<div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:600;margin-bottom:.5rem">✏️ Verifica aquí — no cuenta en el puntaje</div>' +
+      '<textarea id="eg3_check" style="width:100%;min-height:80px;padding:.55rem;border:1px solid var(--gold);border-radius:7px;background:var(--surface);color:var(--text);font-size:.82rem;resize:vertical" placeholder="Escribe tu procedimiento: Salario = ' + beta0 + ' + (...)·1 + ...·1 + ...·' + egExp2 + ' = ?"></textarea>' +
+      '<button onclick="(function(){var ans=document.getElementById(\'eg3_ans\');ans.style.display=ans.style.display===\'none\'?\'block\':\'none\';})()" style="margin-top:.5rem;background:none;border:1px solid var(--gold);color:var(--gold);border-radius:6px;padding:.28rem .75rem;font-size:.8rem;cursor:pointer">Ver respuesta</button>' +
+      '<div id="eg3_ans" style="display:none;margin-top:.6rem;background:var(--surface);border-radius:7px;padding:.65rem .85rem;font-size:.84rem;color:var(--green-dark)">' +
+        'Salario = ' + beta0 + ' + (' + betaMujer + ')·1 + ' + betaUniv + '·1 + ' + betaExp + '·' + egExp2 + '<br>' +
+        '= ' + beta0 + ' + (' + betaMujer + ') + ' + betaUniv + ' + ' + parseFloat((betaExp * egExp2).toFixed(1)) + '<br>' +
+        '= <strong>' + parseFloat((beta0 + betaMujer + betaUniv + betaExp * egExp2).toFixed(1)) + ' miles $</strong>' +
+      '</div>' +
+    '</div>';
+  lb.appendChild(s3);
+
+  // PROBLEM 3 — Interpret a coefficient
+  // Ask what betaMujer means
+  var correctInterp = 'En promedio, una mujer gana ' + Math.abs(betaMujer) + ' mil pesos menos que un hombre con iguales características.';
+  var wrongInterp1  = 'Todas las mujeres de la muestra ganan exactamente ' + Math.abs(betaMujer) + ' mil pesos.';
+  var wrongInterp2  = 'El salario de las mujeres es independiente de las demás variables del modelo.';
+  var wrongInterp3  = 'En promedio, una mujer gana ' + Math.abs(betaMujer) + ' mil pesos más que un hombre con iguales características.';
+  var opts3raw = [correctInterp, wrongInterp1, wrongInterp2, wrongInterp3];
+  var s3opts = shuffle(opts3raw, rng);
+  problems.push({
+    title: 'Interpretación del coeficiente dummy',
+    questionText: 'En el modelo estimado, el coeficiente de D_mujer es <strong>' + betaMujer + '</strong>. ¿Cuál es la interpretación correcta?',
+    fn: 'Salario = ' + beta0 + ' + (' + betaMujer + ')·D_mujer + ' + betaUniv + '·D_univ + ' + betaExp + '·Experiencia',
+    options: s3opts,
+    correctIdx: s3opts.indexOf(correctInterp),
+    studentChoice: null, pendingChoice: null,
+    hint: 'El coeficiente de una dummy mide la diferencia promedio respecto a la categoría de referencia (hombre), manteniendo las demás variables constantes.',
+    explanation: 'β_mujer = ' + betaMujer + ' significa que, con las mismas características (título y experiencia), una mujer gana en promedio ' + Math.abs(betaMujer) + ' mil pesos menos que un hombre. No es el valor absoluto del salario, sino la diferencia respecto al grupo de referencia.'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+
+  // BRIDGE — worked substitution example before P4
+  var bridge = document.createElement('div');
+  bridge.className = 'section';
+  var egExpB = 4 + Math.floor(rng() * 5);   // 4-8 years for bridge example
+  var bridgeSal = parseFloat((beta0 + betaUniv + betaExp * egExpB).toFixed(1));
+  bridge.innerHTML =
+    '<div class="stag">Antes de continuar</div>' +
+    '<h2>Cómo sustituir en la ecuación</h2>' +
+    '<p>Para usar el modelo y estimar un salario, debes sustituir los valores de las variables para la persona que te interesa. Las variables indicadoras solo pueden valer <strong>0</strong> o <strong>1</strong>:</p>' +
+    '<table class="dtable" style="margin-bottom:.9rem">' +
+      '<thead><tr><th>Perfil del trabajador</th><th>D_mujer</th><th>D_univ</th><th>Razonamiento</th></tr></thead>' +
+      '<tbody>' +
+        '<tr><td>Hombre sin título</td><td class="zero">0</td><td class="zero">0</td><td style="font-size:.82rem;color:var(--text3)">No es mujer → 0. No tiene título → 0.</td></tr>' +
+        '<tr><td>Hombre con título</td><td class="zero">0</td><td class="one">1</td><td style="font-size:.82rem;color:var(--text3)">No es mujer → 0. Sí tiene título → 1.</td></tr>' +
+        '<tr><td>Mujer sin título</td><td class="one">1</td><td class="zero">0</td><td style="font-size:.82rem;color:var(--text3)">Sí es mujer → 1. No tiene título → 0.</td></tr>' +
+        '<tr><td>Mujer con título</td><td class="one">1</td><td class="one">1</td><td style="font-size:.82rem;color:var(--text3)">Sí es mujer → 1. Sí tiene título → 1.</td></tr>' +
+      '</tbody>' +
+    '</table>' +
+    '<p><strong>Ejemplo:</strong> Estima el salario de un <em>hombre con título</em> y <strong>' + egExpB + ' años</strong> de experiencia. D_mujer = 0, D_univ = 1, Experiencia = ' + egExpB + ':</p>' +
+    '<div class="eqbox" style="font-size:.88rem;text-align:left;line-height:2.1">' +
+      'Salario = ' + beta0 + ' + (' + betaMujer + ')·<strong>0</strong> + ' + betaUniv + '·<strong>1</strong> + ' + betaExp + '·<strong>' + egExpB + '</strong><br>' +
+      '= ' + beta0 + ' + 0 + ' + betaUniv + ' + ' + parseFloat((betaExp * egExpB).toFixed(1)) + '<br>' +
+      '= <strong>' + bridgeSal + ' miles $</strong>' +
+    '</div>' +
+    '<p style="font-size:.85rem;color:var(--text3)">El término de D_mujer desaparece porque se multiplica por 0. Solo los coeficientes de las variables que valen 1 (o la variable continua Experiencia) contribuyen al resultado.</p>';
+  lb.appendChild(bridge);
+
+  // PROBLEM 4 — Compute a predicted value
+  var expYears = 2 + Math.floor(rng() * 8);   // 2-9 years experience
+  var predicted = beta0 + betaMujer*1 + betaUniv*1 + betaExp*expYears;
+  var predictedRnd = parseFloat(predicted.toFixed(1));
+  // Generate wrong answers with small arithmetic errors
+  var wrong4a = parseFloat((beta0 + betaUniv*1 + betaExp*expYears).toFixed(1));           // forgot betaMujer
+  var wrong4b = parseFloat((beta0 + betaMujer*1 + betaExp*expYears).toFixed(1));           // forgot betaUniv
+  var wrong4c = parseFloat((beta0 + Math.abs(betaMujer)*1 + betaUniv*1 + betaExp*expYears).toFixed(1)); // wrong sign
+  var opts4raw = [predictedRnd + ' miles $', wrong4a + ' miles $', wrong4b + ' miles $', wrong4c + ' miles $'];
+  // ensure no duplicates
+  var opts4set = [];
+  var seen4 = {};
+  opts4raw.forEach(function(o) { if (!seen4[o]) { seen4[o] = true; opts4set.push(o); } });
+  while (opts4set.length < 4) { opts4set.push((predictedRnd + 0.5*(opts4set.length)) + ' miles $'); }
+  var s4opts = shuffle(opts4set, rng);
+  problems.push({
+    title: 'Estimación con dummy',
+    questionText: 'Usa el modelo para estimar el salario esperado de una <strong>mujer con título universitario y ' + expYears + ' años de experiencia</strong>.',
+    fn: 'Salario (en miles $) = ' + beta0 + ' + (' + betaMujer + ')·D_mujer + ' + betaUniv + '·D_univ + ' + betaExp + '·Experiencia',
+    options: s4opts,
+    correctIdx: s4opts.indexOf(predictedRnd + ' miles $'),
+    studentChoice: null, pendingChoice: null,
+    hint: 'Sustituye: D_mujer = 1, D_univ = 1, Experiencia = ' + expYears + '. Recuerda que betaMujer es negativo, así que al sumarlo reduce el salario.',
+    explanation: 'Salario = ' + beta0 + ' + (' + betaMujer + ')×1 + ' + betaUniv + '×1 + ' + betaExp + '×' + expYears + ' = ' + predictedRnd + ' miles $. El coeficiente negativo de D_mujer se resta automáticamente al sustituir D_mujer = 1.'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+
+  // ──────────────────────────────────────────────
+  // SECTION 4 — Trampa de la variable dummy y extensiones
+  // ──────────────────────────────────────────────
+  var s4sec = document.createElement('div');
+  s4sec.className = 'section';
+  var nCats = 3 + Math.floor(rng() * 2);   // 3 or 4 categories
+  var nDummies = nCats - 1;
+  s4sec.innerHTML =
+    '<div class="stag">Concepto 4 de 4</div>' +
+    '<h2>Múltiples categorías y la trampa dummy</h2>' +
+    '<p>Cuando una variable cualitativa tiene más de dos categorías, necesitas crear varias variables indicadoras. El principio es siempre el mismo: si hay <em>k</em> categorías, incluye <em>k − 1</em> dummies y deja una como categoría de referencia.</p>' +
+    '<p><strong>Ejemplo:</strong> La variable "región" tiene ' + nCats + ' categorías: Norte, Centro' + (nCats === 4 ? ', Sur, Occidente' : ', Sur') + '. Necesitas <strong>' + nDummies + ' dummies</strong>:</p>' +
+    '<table class="dtable">' +
+      '<thead><tr><th>Región</th><th>D_norte</th><th>D_centro</th>' + (nCats >= 3 ? '<th>D_sur</th>' : '') + (nCats === 4 ? '<th>D_occidente</th>' : '') + '</tr></thead>' +
+      '<tbody>' +
+        '<tr><td>Norte</td><td class="one">1</td><td class="zero">0</td>' + (nCats >= 3 ? '<td class="zero">0</td>' : '') + (nCats === 4 ? '<td class="zero">0</td>' : '') + '</tr>' +
+        '<tr><td>Centro</td><td class="zero">0</td><td class="one">1</td>' + (nCats >= 3 ? '<td class="zero">0</td>' : '') + (nCats === 4 ? '<td class="zero">0</td>' : '') + '</tr>' +
+        (nCats >= 3 ? '<tr><td>Sur</td><td class="zero">0</td><td class="zero">0</td><td class="one">1</td>' + (nCats === 4 ? '<td class="zero">0</td>' : '') + '</tr>' : '') +
+        (nCats === 4 ? '<tr><td>Occidente</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="one">1</td></tr>' : '') +
+        '<tr style="font-style:italic; color:var(--text3)"><td>Referencia*</td><td class="zero">0</td><td class="zero">0</td>' + (nCats >= 3 ? '<td class="zero">0</td>' : '') + (nCats === 4 ? '<td class="zero">0</td>' : '') + '</tr>' +
+      '</tbody>' +
+    '</table>' +
+    '<p style="font-size:.8rem;color:var(--text3);margin-top:-.3rem">* La categoría de referencia es aquella que no aparece explícitamente; sus observaciones tienen 0 en todas las dummies.</p>' +
+    '<div class="callout"><p><strong>La trampa dummy:</strong> Si incluyes las ' + nCats + ' dummies completas (una por cada categoría), su suma siempre sería 1 para todas las observaciones. Eso crea colinealidad perfecta con el término constante β₀ y la estimación por MCO falla.</p></div>';
+  lb.appendChild(s4sec);
+
+  // ──────────────────────────────────────────────
+  // ASSESSMENT SECTION
+  // ──────────────────────────────────────────────
+  var assess = document.createElement('div');
+  assess.className = 'section';
+
+  // CAPSTONE DATA — raw observations about rental properties
+  var capB0    = 3 + Math.floor(rng() * 4);
+  var capBcasa = 1 + Math.floor(rng() * 4);
+  var capBamue = parseFloat((0.5 + rng() * 2).toFixed(1));
+  var capBnorte= -(1 + Math.floor(rng() * 3));
+  var capBm2   = parseFloat((0.05 + rng() * 0.10).toFixed(2));
+
+  var propNames = ['Prop. 1','Prop. 2','Prop. 3','Prop. 4','Prop. 5','Prop. 6'];
+  var propTipo   = ['Casa','Departamento','Casa','Departamento','Casa','Departamento'];
+  var propAmue   = ['Sí','No','No','Sí','Sí','No'];
+  var propZona   = ['Norte','Sur','Sur','Norte','Sur','Norte'];
+  var propM2vals = [55,40,70,35,80,45].map(function(v){ return v + Math.floor(rng()*10); });
+  var propRenta  = propTipo.map(function(t, pi) {
+    return parseFloat((capB0 +
+      (t==='Casa' ? capBcasa : 0) +
+      (propAmue[pi]==='Sí' ? capBamue : 0) +
+      (propZona[pi]==='Norte' ? capBnorte : 0) +
+      capBm2 * propM2vals[pi] + (rng()*0.4 - 0.2)).toFixed(1));
+  });
+
+  var rawRows = propTipo.map(function(t, pi) {
+    return '<tr><td>' + propNames[pi] + '</td><td>' + t + '</td><td>' + propAmue[pi] +
+      '</td><td>' + propZona[pi] + '</td><td class="num">' + propM2vals[pi] +
+      '</td><td class="num">' + propRenta[pi] + '</td></tr>';
+  }).join('');
+
+  assess.innerHTML =
+    '<div class="stag">Evaluación final</div>' +
+    '<h2>Ejercicio integrador: mercado de rentas</h2>' +
+    '<p>Tienes datos sin codificar de 6 propiedades en renta. La renta está en miles de pesos mensuales.</p>' +
+    '<div style="overflow-x:auto"><table class="dtable">' +
+      '<thead><tr><th>Propiedad</th><th>Tipo</th><th>Amueblado</th><th>Zona</th><th>m²</th><th>Renta (miles $)</th></tr></thead>' +
+      '<tbody>' + rawRows + '</tbody>' +
+    '</table></div>' +
+    '<div class="callout" style="margin-top:1rem">' +
+      '<p><strong>Tu tarea:</strong> Codifica estas observaciones con variables indicadoras y corre la regresión en el software de tu elección (StatsBlue, R, Excel, etc.). Usa las siguientes categorías de referencia:</p>' +
+      '<p style="margin-top:.5rem;font-family:monospace;font-size:.88rem"><strong>Departamento · No amueblado · Zona Sur</strong></p>' +
+      '<p style="margin-top:.5rem;font-size:.84rem;color:var(--text2)">La variable dependiente es <strong>Renta (en miles $)</strong>. Las variables independientes son D_casa, D_amueblado, D_norte y m².</p>' +
+    '</div>';
+  lb.appendChild(assess);
+
+  // ASSESSMENT 1 — What is the correct regression equation?
+  // Build the correct equation string and 3 plausible wrong ones
+  var correctEq = 'Renta = ' + capB0 + ' + ' + capBcasa + '·D_casa + ' + capBamue + '·D_amueblado + (' + capBnorte + ')·D_norte + ' + capBm2 + '·m²';
+  // Wrong 1: sign of capBnorte flipped
+  var wrongEq1  = 'Renta = ' + capB0 + ' + ' + capBcasa + '·D_casa + ' + capBamue + '·D_amueblado + ' + Math.abs(capBnorte) + '·D_norte + ' + capBm2 + '·m²';
+  // Wrong 2: D_departamento instead of D_casa (wrong reference)
+  var wrongEq2  = 'Renta = ' + capB0 + ' + ' + capBcasa + '·D_departamento + ' + capBamue + '·D_amueblado + (' + capBnorte + ')·D_norte + ' + capBm2 + '·m²';
+  // Wrong 3: includes both D_casa and D_departamento (dummy trap)
+  var wrongEq3  = 'Renta = ' + capB0 + ' + ' + capBcasa + '·D_casa + ' + capBcasa + '·D_departamento + ' + capBamue + '·D_amueblado + (' + capBnorte + ')·D_norte + ' + capBm2 + '·m²';
+  var optsEq = shuffle([correctEq, wrongEq1, wrongEq2, wrongEq3], rng);
+  problems.push({
+    title: '¿Cuál es la regresión correcta?',
+    questionText: 'Después de correr la regresión con los datos de la tabla (categorías de referencia: Departamento, No amueblado, Zona Sur), ¿cuál de las siguientes ecuaciones corresponde al modelo correcto?',
+    fn: '',
+    options: optsEq,
+    correctIdx: optsEq.indexOf(correctEq),
+    studentChoice: null, pendingChoice: null,
+    hint: 'Verifica: ¿la variable dummy para tipo es D_casa o D_departamento? ¿El coeficiente de D_norte es positivo o negativo dado que Norte tiene rentas menores?',
+    explanation: 'La categoría de referencia para tipo es Departamento, así que la dummy se llama D_casa (= 1 si es casa). El coeficiente de D_norte es negativo (' + capBnorte + ') porque la zona Norte tiene rentas menores que la zona Sur (referencia). Incluir D_departamento sería un error: ya está capturada en la referencia.'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+
+  // ASSESSMENT 2 — Interpret coefficient of D_norte
+  var correctNorte = 'Las propiedades en zona Norte tienen una renta promedio ' + Math.abs(capBnorte) + ' mil pesos menor que en zona Sur, ceteris paribus.';
+  var wrongNorte1  = 'Las propiedades en zona Norte tienen una renta promedio ' + Math.abs(capBnorte) + ' mil pesos mayor que en zona Sur, ceteris paribus.';
+  var wrongNorte2  = 'Todas las propiedades en zona Norte cuestan exactamente ' + Math.abs(capBnorte) + ' mil pesos.';
+  var wrongNorte3  = 'La zona no afecta significativamente la renta en este modelo.';
+  var optsNorte = shuffle([correctNorte, wrongNorte1, wrongNorte2, wrongNorte3], rng);
+  problems.push({
+    title: 'Interpretar coeficiente de zona',
+    questionText: 'El coeficiente de D_norte en tu regresión es <strong>' + capBnorte + '</strong>. ¿Cuál es la interpretación correcta?',
+    fn: 'Renta (en miles $) = ' + capB0 + ' + ' + capBcasa + '·D_casa + ' + capBamue + '·D_amueblado + (' + capBnorte + ')·D_norte + ' + capBm2 + '·m²',
+    options: optsNorte,
+    correctIdx: optsNorte.indexOf(correctNorte),
+    studentChoice: null, pendingChoice: null,
+    hint: 'Un coeficiente negativo de D_norte significa que la zona Norte está asociada a una renta _____ que la zona de referencia (Sur).',
+    explanation: 'β_norte = ' + capBnorte + ' es negativo: las propiedades en zona Norte tienen, en promedio, una renta ' + Math.abs(capBnorte) + ' mil pesos menor que propiedades equivalentes en zona Sur. El signo negativo es clave: siempre compara con la categoría de referencia.'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+
+  // ASSESSMENT 3 — Estimate rent for a specific property
+  var capM2est = 50 + Math.floor(rng() * 30);
+  var capEstSal = parseFloat((capB0 + capBcasa + capBamue + 0 + capBm2*capM2est).toFixed(1));
+  var capWrong1 = parseFloat((capB0 + capBcasa + 0 + 0 + capBm2*capM2est).toFixed(1));
+  var capWrong2 = parseFloat((capB0 + capBcasa + capBamue + capBnorte + capBm2*capM2est).toFixed(1));
+  var capWrong3 = parseFloat((capB0 + 0 + capBamue + 0 + capBm2*capM2est).toFixed(1));
+  var optsEst = [];
+  var seenEst = {};
+  [capEstSal+' miles $', capWrong1+' miles $', capWrong2+' miles $', capWrong3+' miles $'].forEach(function(o){ if(!seenEst[o]){seenEst[o]=true;optsEst.push(o);} });
+  while(optsEst.length < 4) optsEst.push(parseFloat((capEstSal + optsEst.length*0.3).toFixed(1))+' miles $');
+  var optsEstS = shuffle(optsEst, rng);
+  problems.push({
+    title: 'Estimar renta de una propiedad',
+    questionText: 'Usa el modelo para estimar la renta mensual de una <strong>casa amueblada en zona Sur</strong> con <strong>' + capM2est + ' m²</strong>.',
+    fn: 'Renta (en miles $) = ' + capB0 + ' + ' + capBcasa + '·D_casa + ' + capBamue + '·D_amueblado + (' + capBnorte + ')·D_norte + ' + capBm2 + '·m²',
+    options: optsEstS,
+    correctIdx: optsEstS.indexOf(capEstSal+' miles $'),
+    studentChoice: null, pendingChoice: null,
+    hint: 'Casa → D_casa=1. Amueblada → D_amueblado=1. Zona Sur → D_norte=0. Sustituye y suma.',
+    explanation: 'Renta = ' + capB0 + ' + ' + capBcasa + '×1 + ' + capBamue + '×1 + (' + capBnorte + ')×0 + ' + capBm2 + '×' + capM2est + ' = ' + capEstSal + ' miles $. D_norte desaparece porque la propiedad está en zona Sur (D_norte = 0).'
+  });
+  buildOneCard(problems[problems.length - 1], problems.length - 1);
+}
+</script>
+</body>
+</html>
